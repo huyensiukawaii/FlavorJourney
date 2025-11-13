@@ -1,15 +1,208 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model users {
+  id                                Int                       @id @default(autoincrement())
+  email                             String                    @unique(map: "email") @db.VarChar(255)
+  password                          String                    @db.VarChar(255)
+  username                          String                    @db.VarChar(100)
+  role                              UserRole?                 @default(user)
+  birthday                          DateTime?                 @db.Date
+  location                          String?                   @db.VarChar(255)
+  registration_date                 DateTime?                 @default(now()) @db.DateTime(0)
+  consecutive_login_days            Int?                      @default(0)
+  save_login_info                   Boolean?                  @default(false)
+  last_login                        DateTime?                 @db.DateTime(0)
+  created_at                        DateTime?                 @default(now()) @db.DateTime(0)
+  updated_at                        DateTime?                 @default(now()) @updatedAt @db.DateTime(0)
+  dishes_dishes_submitted_byTousers dishes[]                  @relation("dishes_submitted_byTousers")
+  dishes_dishes_reviewed_byTousers  dishes[]                  @relation("dishes_reviewed_byTousers")
+  favorites                         favorites[]
+  saved_templates                   saved_templates[]
+  category_interests                user_category_interests[]
+  taste_interests                   user_taste_interests[]
+  view_histories                    view_history[]
+
+  @@index([email], map: "idx_email")
+  @@index([role], map: "idx_role")
+}
+
+model regions {
+  id              Int       @id @default(autoincrement())
+  name_japanese   String    @db.VarChar(100)
+  name_vietnamese String    @db.VarChar(100)
+  code            String    @unique(map: "code") @db.VarChar(20)
+  created_at      DateTime? @default(now()) @db.DateTime(0)
+  dishes          dishes[]
+}
+
+model categories {
+  id              Int                       @id @default(autoincrement())
+  name_japanese   String                    @db.VarChar(100)
+  name_vietnamese String                    @db.VarChar(100)
+  slug            String                    @unique(map: "slug") @db.VarChar(100)
+  created_at      DateTime?                 @default(now()) @db.DateTime(0)
+  dishes          dishes[]
+  category_users  user_category_interests[]
+}
+
+model taste_interests {
+  id              Int                    @id @default(autoincrement())
+  name_japanese   String                 @db.VarChar(50)
+  name_vietnamese String                 @db.VarChar(50)
+  slug            String                 @unique(map: "slug") @db.VarChar(50)
+  created_at      DateTime?              @default(now()) @db.DateTime(0)
+  taste_users     user_taste_interests[]
+}
+
+model user_taste_interests {
+  user_id    Int
+  taste_id   Int
+  created_at DateTime?       @default(now()) @db.DateTime(0)
+  user       users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_taste_interests_ibfk_1")
+  taste      taste_interests @relation(fields: [taste_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_taste_interests_ibfk_2")
+
+  @@id([user_id, taste_id])
+  @@index([taste_id], map: "idx_taste")
+  @@index([user_id], map: "idx_user")
+}
+
+model user_category_interests {
+  user_id     Int
+  category_id Int
+  created_at  DateTime?  @default(now()) @db.DateTime(0)
+  user        users      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_category_interests_ibfk_1")
+  category    categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_category_interests_ibfk_2")
+
+  @@id([user_id, category_id])
+  @@index([category_id], map: "idx_category")
+  @@index([user_id], map: "idx_user")
+}
+
+model dishes {
+  id                               Int               @id @default(autoincrement())
+  name_japanese                    String            @db.VarChar(255)
+  name_vietnamese                  String            @db.VarChar(255)
+  name_romaji                      String?           @db.VarChar(255)
+  description_japanese             String?           @db.Text
+  description_vietnamese           String?           @db.Text
+  description_romaji               String?           @db.Text
+  image_url                        String?           @db.VarChar(500)
+  category_id                      Int?
+  region_id                        Int?
+  spiciness_level                  Int?              @default(0)
+  saltiness_level                  Int?              @default(0)
+  sweetness_level                  Int?              @default(0)
+  sourness_level                   Int?              @default(0)
+  ingredients                      String?           @db.Text
+  how_to_eat                       String?           @db.Text
+  status                           DishStatus?       @default(pending)
+  submitted_by                     Int
+  reviewed_by                      Int?
+  submitted_at                     DateTime?         @default(now()) @db.DateTime(0)
+  reviewed_at                      DateTime?         @db.DateTime(0)
+  rejection_reason                 String?           @db.Text
+  view_count                       Int?              @default(0)
+  created_at                       DateTime?         @default(now()) @db.DateTime(0)
+  updated_at                       DateTime?         @default(now()) @updatedAt @db.DateTime(0)
+  category                         categories?       @relation(fields: [category_id], references: [id], onUpdate: NoAction, map: "dishes_ibfk_1")
+  region                           regions?          @relation(fields: [region_id], references: [id], onUpdate: NoAction, map: "dishes_ibfk_2")
+  users_dishes_submitted_byTousers users             @relation("dishes_submitted_byTousers", fields: [submitted_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "dishes_ibfk_3")
+  users_dishes_reviewed_byTousers  users?            @relation("dishes_reviewed_byTousers", fields: [reviewed_by], references: [id], onUpdate: NoAction, map: "dishes_ibfk_4")
+  favorites                        favorites[]
+  saved_templates                  saved_templates[]
+  view_histories                   view_history[]
+
+  @@index([category_id], map: "idx_category")
+  @@index([region_id], map: "idx_region")
+  @@index([reviewed_by], map: "idx_reviewed_by")
+  @@index([status], map: "idx_status")
+  @@index([submitted_by], map: "idx_submitted_by")
+  @@fulltext([name_japanese, name_vietnamese, description_japanese, description_vietnamese], map: "idx_search")
+}
+
+model favorites {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  dish_id    Int
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "favorites_ibfk_1")
+  dish       dishes    @relation(fields: [dish_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "favorites_ibfk_2")
+
+  @@unique([user_id, dish_id], map: "unique_favorite")
+  @@index([dish_id], map: "idx_dish")
+  @@index([user_id], map: "idx_user")
+}
+
+model view_history {
+  id        Int       @id @default(autoincrement())
+  user_id   Int
+  dish_id   Int
+  viewed_at DateTime? @default(now()) @db.DateTime(0)
+  user      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "view_history_ibfk_1")
+  dish      dishes    @relation(fields: [dish_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "view_history_ibfk_2")
+
+  @@index([dish_id], map: "idx_dish")
+  @@index([user_id], map: "idx_user")
+  @@index([viewed_at], map: "idx_viewed_at")
+}
+
+model template_groups {
+  id              Int         @id @default(autoincrement())
+  name_japanese   String      @db.VarChar(100)
+  name_vietnamese String      @db.VarChar(100)
+  description     String?     @db.Text
+  display_order   Int?        @default(0)
+  created_at      DateTime?   @default(now()) @db.DateTime(0)
+  templates       templates[]
+
+  @@index([display_order], map: "idx_display_order")
+}
+
+model templates {
+  id              Int              @id @default(autoincrement())
+  group_id        Int?
+  japanese_text   String           @db.Text
+  vietnamese_text String           @db.Text
+  romaji_text     String?          @db.Text
+  audio_url       String?          @db.VarChar(500)
+  usage_context   String?          @db.VarChar(255)
+  display_order   Int?             @default(0)
+  created_at      DateTime?        @default(now()) @db.DateTime(0)
+  group           template_groups? @relation(fields: [group_id], references: [id], onUpdate: NoAction, map: "templates_ibfk_1")
+
+  @@index([display_order], map: "idx_display_order")
+  @@index([group_id], map: "idx_group")
+}
+
+model saved_templates {
+  id             Int       @id @default(autoincrement())
+  user_id        Int
+  dish_id        Int?
+  title          String?   @db.VarChar(255)
+  generated_text String    @db.Text
+  context        String?   @db.Text
+  created_at     DateTime? @default(now()) @db.DateTime(0)
+  user           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "saved_templates_ibfk_1")
+  dish           dishes?   @relation(fields: [dish_id], references: [id], onUpdate: NoAction, map: "saved_templates_ibfk_2")
+
+  @@index([dish_id], map: "idx_dish")
+  @@index([user_id], map: "idx_user")
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum DishStatus {
+  pending
+  approved
+  rejected
 }
