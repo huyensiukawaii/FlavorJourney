@@ -37,7 +37,7 @@ export default function Register({ onSwitchToLogin }) {
       .finally(() => setLoading(false))
   }
 
-  const [loading, setLoading] = useState(false)
+  const [, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   return (
