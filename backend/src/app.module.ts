@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProfileModule } from './profile/profile.module';
@@ -7,10 +8,21 @@ import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { DishModule } from './dish/dish.module';
 import { ViewHistoryModule } from './view_history/view_history.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
-  imports: [ProfileModule, PrismaModule, CommonModule, AuthModule, DishModule, ViewHistoryModule],
-
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    ProfileModule,
+    PrismaModule,
+    CommonModule,
+    AuthModule,
+    DishModule,
+    UploadModule,
+    ViewHistoryModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
