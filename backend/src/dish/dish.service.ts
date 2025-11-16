@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDishDto } from './dtos/create-dish.dto';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class DishService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) {}
 
   async createDish(createDishDto: CreateDishDto, userId: number) {
     const { category_id, region_id } = createDishDto;
@@ -14,7 +18,10 @@ export class DishService {
       const category = await this.prisma.categories.findUnique({
         where: { id: category_id },
       });
-      if (!category) throw new BadRequestException('カテゴリーが無効です');
+      if (!category)
+        throw new BadRequestException(
+          await this.i18n.t('dish.errors.invalid_category'),
+        );
     }
 
     // Kiểm tra region tồn tại nếu có
@@ -22,12 +29,17 @@ export class DishService {
       const region = await this.prisma.regions.findUnique({
         where: { id: region_id },
       });
-      if (!region) throw new BadRequestException('地域が無効です');
+      if (!region)
+        throw new BadRequestException(
+          await this.i18n.t('dish.errors.invalid_region'),
+        );
     }
 
     // Kiểm tra tên món ăn
     if (!createDishDto.name_japanese || !createDishDto.name_vietnamese) {
-      throw new BadRequestException('料理名は必須です');
+      throw new BadRequestException(
+        await this.i18n.t('dish.errors.name_required'),
+      );
     }
 
     const dish = await this.prisma.dishes.create({

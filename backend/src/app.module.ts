@@ -7,11 +7,40 @@ import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { DishModule } from './dish/dish.module';
 import { ViewHistoryModule } from './view_history/view_history.module';
+import {
+  I18nModule,
+  QueryResolver,
+  HeaderResolver,
+  AcceptLanguageResolver,
+} from 'nestjs-i18n';
+import { join } from 'path';
+import * as fs from 'fs';
 
 @Module({
-  imports: [ProfileModule, PrismaModule, CommonModule, AuthModule, DishModule, ViewHistoryModule],
+  imports: [
+    I18nModule.forRoot({
+      fallbackLanguage: 'vi',
+      loaderOptions: {
+        path: fs.existsSync(join(__dirname, 'locales'))
+          ? join(__dirname, 'locales')
+          : join(process.cwd(), 'src', 'locales'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        new HeaderResolver(['x-lang']),
+        AcceptLanguageResolver,
+      ],
+    }),
+    ProfileModule,
+    PrismaModule,
+    CommonModule,
+    AuthModule,
+    DishModule,
+    ViewHistoryModule,
+  ],
 
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
