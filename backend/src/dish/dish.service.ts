@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDishDto } from './dtos/create-dish.dto';
 import { ListDishesQueryDto } from './dtos/list-dish-query.dto';
@@ -205,6 +209,60 @@ export class DishService {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getById(dishId: number): Promise<DishResponseDto> {
+    const dish = await this.prisma.dishes.findUnique({
+      where: { id: dishId, status: 'approved' },
+      include: {
+        category: true,
+        region: true,
+        users_dishes_submitted_byTousers: {
+          select: { username: true },
+        },
+      },
+    });
+
+    if (!dish) {
+      throw new NotFoundException(`IDの料理が見つかりません: ${dishId}`);
+    }
+
+    return {
+      id: dish.id,
+      name_japanese: dish.name_japanese,
+      name_vietnamese: dish.name_vietnamese,
+      name_romaji: dish.name_romaji ?? undefined,
+      description_japanese: dish.description_japanese ?? undefined,
+      description_vietnamese: dish.description_vietnamese ?? undefined,
+      description_romaji: dish.description_romaji ?? undefined,
+      image_url: dish.image_url ?? undefined,
+      submitted_id: {
+        username: dish.users_dishes_submitted_byTousers.username,
+      },
+      category: dish.category
+        ? {
+            id: dish.category.id,
+            name_japanese: dish.category.name_japanese,
+            name_vietnamese: dish.category.name_vietnamese,
+          }
+        : undefined,
+      region: dish.region
+        ? {
+            id: dish.region.id,
+            name_japanese: dish.region.name_japanese,
+            name_vietnamese: dish.region.name_vietnamese,
+          }
+        : undefined,
+      spiciness_level: dish.spiciness_level ?? undefined,
+      saltiness_level: dish.saltiness_level ?? undefined,
+      sweetness_level: dish.sweetness_level ?? undefined,
+      sourness_level: dish.sourness_level ?? undefined,
+      ingredients: dish.ingredients ?? '',
+      how_to_eat: dish.how_to_eat ?? '',
+      view_count: dish.view_count ?? 0,
+      submitted_at: dish.submitted_at ?? undefined,
+      reviewed_at: dish.reviewed_at ?? undefined,
     };
   }
 }

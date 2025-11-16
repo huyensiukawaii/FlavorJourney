@@ -5,12 +5,17 @@ import {
   Get,
   Query,
   Req,
+  Param,
+  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { DishService } from './dish.service';
 import { CreateDishDto } from './dtos/create-dish.dto';
 import { ListDishesQueryDto } from './dtos/list-dish-query.dto';
-import { PaginatedDishesResponse } from './dtos/list-dish-response.dto';
+import {
+  PaginatedDishesResponse,
+  DishResponseDto,
+} from './dtos/list-dish-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('dishes')
@@ -29,5 +34,12 @@ export class DishController {
     @Query() query: ListDishesQueryDto,
   ): Promise<PaginatedDishesResponse> {
     return this.dishService.list(query);
+  }
+
+  @Get(':dishId')
+  async getDishByUser(
+    @Param('dishId', ParseIntPipe) id: number,
+  ): Promise<DishResponseDto> {
+    return this.dishService.getById(id);
   }
 }
