@@ -18,10 +18,13 @@ import { UpdateDishDto } from './dtos/update-dish.dto';
 export class DishService {
   constructor(private prisma: PrismaService) {}
 
-  async createDish(createDishDto: CreateDishDto, userId: number) {
+  async createDish(
+    createDishDto: CreateDishDto,
+    userId: number,
+    imageUrl?: string,
+  ) {
     const { category_id, region_id } = createDishDto;
 
-    // Kiểm tra category tồn tại nếu có
     if (category_id) {
       const category = await this.prisma.categories.findUnique({
         where: { id: category_id },
@@ -29,7 +32,6 @@ export class DishService {
       if (!category) throw new BadRequestException('カテゴリーが無効です');
     }
 
-    // Kiểm tra region tồn tại nếu có
     if (region_id) {
       const region = await this.prisma.regions.findUnique({
         where: { id: region_id },
@@ -37,7 +39,6 @@ export class DishService {
       if (!region) throw new BadRequestException('地域が無効です');
     }
 
-    // Kiểm tra tên món ăn
     if (!createDishDto.name_japanese || !createDishDto.name_vietnamese) {
       throw new BadRequestException('料理名は必須です');
     }
@@ -48,6 +49,7 @@ export class DishService {
         submitted_by: userId,
         status: 'pending',
         submitted_at: new Date(),
+        image_url: imageUrl || null, // thêm trường image_url
       },
       select: {
         id: true,
@@ -55,6 +57,7 @@ export class DishService {
         name_vietnamese: true,
         status: true,
         submitted_at: true,
+        image_url: true, // trả về URL ảnh luôn
       },
     });
 
