@@ -29,7 +29,8 @@ model users {
   category_interests                user_category_interests[]
   taste_interests                   user_taste_interests[]
   view_histories                    view_history[]
-
+  reset_password_token        String?   @db.VarChar(255)
+  reset_password_expires_at   DateTime? @db.DateTime(0)
   @@index([email], map: "idx_email")
   @@index([role], map: "idx_role")
 }
