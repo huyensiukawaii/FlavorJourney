@@ -16,6 +16,7 @@ import {
 } from 'nestjs-i18n';
 import { join } from 'path';
 import { UploadModule } from './upload/upload.module';
+import { MailerModule } from 'src/mailer/mailer.module';
 import * as fs from 'fs';
 
 @Module({
@@ -38,7 +39,8 @@ import * as fs from 'fs';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
+    
+    MailerModule,
     ProfileModule,
     PrismaModule,
     CommonModule,
