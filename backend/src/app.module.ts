@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { DishModule } from './dish/dish.module';
+import { FavoritesModule } from './favorites/favorites.module';
 import { ViewHistoryModule } from './view_history/view_history.module';
 import {
   I18nModule,
@@ -39,7 +40,7 @@ import * as fs from 'fs';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+    FavoritesModule,
     MailerModule,
     ProfileModule,
     PrismaModule,
