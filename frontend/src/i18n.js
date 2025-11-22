@@ -12,6 +12,8 @@ import viFavorites from "./locales/vi/favorites.json";
 import jpFavorites from "./locales/jp/favorites.json";
 import viSearch from "./locales/vi/search.json";
 import jpSearch from "./locales/jp/search.json";
+import viChangePassword from "./locales/vi/change_password.json";
+import jpChangePassword from "./locales/jp/change_password.json";
 
 const stored =
   typeof window !== "undefined" ? localStorage.getItem("lang") : null;
@@ -22,10 +24,26 @@ i18n.use(initReactI18next).init({
   fallbackLng: "vi",
   debug: false,
   defaultNS: "homepage",
-  ns: ["homepage", "sidebar", "admin", "favorites",  "dishForm", "search"],
+  ns: ["homepage", "sidebar", "admin", "favorites", "dishForm", "search", "change_password"],
   resources: {
-    vi: { homepage: viHomepage, sidebar: viSidebar, admin: viAdmin, favorites: viFavorites, dishForm: viDishForm, search: viSearch },
-    jp: { homepage: jpHomepage, sidebar: jpSidebar, admin: jpAdmin, favorites: jpFavorites, dishForm: jpDishForm, search: jpSearch },
+    vi: { 
+      homepage: viHomepage, 
+      sidebar: viSidebar, 
+      admin: viAdmin, 
+      favorites: viFavorites, 
+      dishForm: viDishForm, 
+      search: viSearch,
+      change_password: viChangePassword 
+    },
+    jp: { 
+      homepage: jpHomepage, 
+      sidebar: jpSidebar, 
+      admin: jpAdmin, 
+      favorites: jpFavorites, 
+      dishForm: jpDishForm, 
+      search: jpSearch,
+      change_password: jpChangePassword 
+    },
   },
   interpolation: {
     escapeValue: false,
