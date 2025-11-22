@@ -80,7 +80,7 @@ export const dishAPI = {
     const token = localStorage.getItem("access_token");
     const lang = localStorage.getItem("lang") || "vi";
     
-    let headers = {
+    const headers = {
       "x-lang": lang,
     };
     
@@ -92,20 +92,23 @@ export const dishAPI = {
     
     if (imageFile) {
       const formData = new FormData();
-      formData.append("image", imageFile);
+      
       Object.keys(dishData).forEach((key) => {
         const value = dishData[key];
-        if (value !== null && value !== undefined) {
-          if (typeof value === 'number') {
-            formData.append(key, value.toString());
-          } else if (typeof value === 'string') {
-            formData.append(key, value);
-          } else {
-            formData.append(key, String(value));
-          }
+        if (value !== null && value !== undefined && value !== '') {
+          formData.append(key, value);
         }
       });
+      
+      if (imageFile instanceof File) {
+        formData.append("image", imageFile);
+      }
+      
       body = formData;
+      
+      if (headers["Content-Type"]) {
+        delete headers["Content-Type"];
+      }
     } else {
       headers["Content-Type"] = "application/json";
       body = JSON.stringify(dishData);
@@ -118,57 +121,17 @@ export const dishAPI = {
     });
     
     if (!response.ok) {
-      const responseClone = response.clone();
-      let errorData;
-      let errorText;
-      
-      try {
-        errorText = await responseClone.text();
-        if (errorText) {
-          errorData = JSON.parse(errorText);
-        } else {
-          errorData = {};
-        }
-      } catch (e) {
-        errorData = { 
-          message: `Lỗi ${response.status}: ${response.statusText}`,
-          statusCode: response.status
-        };
-      }
-      
+      const errorText = await response.text();
       let errorMessage = "Gửi món ăn thất bại";
-      
-      if (errorData.message) {
-        if (Array.isArray(errorData.message)) {
-          errorMessage = errorData.message[0] || errorMessage;
-        } else if (typeof errorData.message === 'string') {
-          errorMessage = errorData.message;
-        } else if (typeof errorData.message === 'object') {
-          const firstError = Object.values(errorData.message)[0];
-          if (Array.isArray(firstError)) {
-            errorMessage = firstError[0] || errorMessage;
-          } else if (typeof firstError === 'string') {
-            errorMessage = firstError;
-          }
+      try {
+        const json = JSON.parse(errorText);
+        errorMessage = json.message || json.error || "Bad Request";
+        if (Array.isArray(json.message)) {
+          errorMessage = json.message.join(', ');
         }
-      } else if (errorData.error) {
-        errorMessage = errorData.error;
+      } catch {
+        errorMessage = errorText || response.statusText;
       }
-      
-      if (errorMessage === "Bad Request" || errorMessage === "Gửi món ăn thất bại") {
-        if (errorData.statusCode === 400) {
-          if (errorData.message && Array.isArray(errorData.message)) {
-            errorMessage = errorData.message.join(", ");
-          } else if (errorData.message && typeof errorData.message === 'string') {
-            errorMessage = errorData.message;
-          } else {
-            errorMessage = "Gửi món ăn thất bại. Vui lòng kiểm tra lại thông tin đã nhập.";
-          }
-        } else {
-          errorMessage = `Gửi món ăn thất bại (${errorData.statusCode || response.status}). Vui lòng kiểm tra lại thông tin đã nhập.`;
-        }
-      }
-      
       throw new Error(errorMessage);
     }
     

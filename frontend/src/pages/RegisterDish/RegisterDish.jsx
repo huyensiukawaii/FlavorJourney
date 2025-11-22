@@ -136,9 +136,11 @@ export default function RegisterDish() {
         dishData.description_japanese = form.description.trim();
       }
 
-      const spiciness = Number(form.spiciness);
-      if (!isNaN(spiciness) && spiciness >= 0 && spiciness <= 10) {
-        dishData.spiciness_level = spiciness;
+      if (form.spiciness !== undefined && form.spiciness !== null && form.spiciness !== '') {
+        const spiciness = parseInt(form.spiciness, 10);
+        if (!isNaN(spiciness) && spiciness >= 0 && spiciness <= 10) {
+          dishData.spiciness_level = spiciness;
+        }
       }
 
       // Thêm các field optional nếu có giá trị (không phải empty string)
@@ -158,8 +160,6 @@ export default function RegisterDish() {
         dishData.ingredients = form.ingredients.trim();
       }
 
-      console.log("Submitting dish data:", JSON.stringify(dishData, null, 2));
-      console.log("Image file:", form.image ? "Present" : "Not present");
       await dishAPI.create(dishData, form.image);
 
       setStatus({
@@ -231,7 +231,7 @@ export default function RegisterDish() {
 
       <form className="register-card" onSubmit={handleSubmit}>
         <section className="upload-block">
-          <label>{t("upload_label")}</label>
+          <label htmlFor="dish-image">{t("upload_label")}</label>
           <div className="upload-dropzone">
             {preview ? (
               <img src={preview} alt="preview" className="preview-image" />
