@@ -18,44 +18,44 @@ function DishDetail() {
   const currentLang = i18n.language;
 
   useEffect(() => {
-    fetchDishDetail();
-  }, [dishId]);
+    const fetchDishDetail = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem("access_token");
 
-  const fetchDishDetail = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/dishes/${dishId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
+        if (!token) {
           navigate("/login");
           return;
         }
-        throw new Error("Failed to fetch dish details");
-      }
 
-      const data = await response.json();
-      setDish(data);
-    } catch (err) {
-      console.error("Error fetching dish details:", err);
-      setError(t("dishApproval.error"));
-    } finally {
-      setLoading(false);
-    }
-  };
+        const response = await fetch(`${API_URL}/dishes/${dishId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            navigate("/login");
+            return;
+          }
+          throw new Error("Failed to fetch dish details");
+        }
+
+        const data = await response.json();
+        setDish(data);
+      } catch (err) {
+        console.error("Error fetching dish details:", err);
+        setError(t("dishApproval.error"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDishDetail();
+  }, [dishId, navigate, t]);
 
   const handleApprove = async () => {
     if (!window.confirm(t("dishApproval.confirmApprove"))) {

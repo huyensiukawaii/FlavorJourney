@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -6,13 +6,14 @@ import {
   Navigate,
   useNavigate,
 } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./pages/LoginRegister/Login";
+import Register from "./pages/LoginRegister/Register";
+import Home from "./pages/Home/Home";
+// Fixed imports
 import DishApproval from "./pages/DishApproval";
 import DishDetail from "./pages/DishDetail";
 import RegisterDish from "./pages/RegisterDish/RegisterDish";
 import "./App.css";
-import { useTranslation } from "react-i18next";
 import Sidebar from "./components/sidebar/sidebar";
 
 // ============= SHARED COMPONENTS =============
@@ -32,60 +33,6 @@ function AppLayout({ children, active, onNavigate, onLogout }) {
         {children}
       </main>
     </div>
-  );
-}
-
-// Home content chung cho cả user và admin
-function HomeContent() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const { t, i18n } = useTranslation("homepage");
-  const navigate = useNavigate();
-  const [lang, setLang] = useState(
-    localStorage.getItem("lang") || i18n.language || "vi"
-  );
-
-  const name =
-    user.username || user.email || (lang === "jp" ? "ユーザー" : "Người dùng");
-
-  const handleChangeLang = (e) => {
-    const value = e.target.value;
-    setLang(value);
-    localStorage.setItem("lang", value);
-    i18n.changeLanguage(value);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
-  return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
-        <label htmlFor="lang-select" style={{ fontWeight: 600 }}>
-          {t("language")}:
-        </label>
-        <select id="lang-select" value={lang} onChange={handleChangeLang}>
-          <option value="vi">{t("lang_vi")}</option>
-          <option value="jp">{t("lang_jp")}</option>
-        </select>
-      </div>
-      <h1>{t("welcome", { name })}</h1>
-      <p>{t("loggedIn")}</p>
-      <div style={{ marginTop: 16 }}>
-        <button className="btn-secondary" onClick={handleLogout}>
-          {t("backToLogin")}
-        </button>
-      </div>
-    </>
   );
 }
 
@@ -128,7 +75,7 @@ function UserHome() {
         );
       case "home":
       default:
-        return <HomeContent />;
+        return <Home />;
     }
   };
 
@@ -184,7 +131,7 @@ function AdminHome() {
         );
       case "home":
       default:
-        return <HomeContent />;
+        return <Home />;
     }
   };
 
@@ -233,7 +180,7 @@ function AdminProtectedRoute({ children }) {
 // Layout cho admin detail pages
 function AdminDetailLayout({ children }) {
   const navigate = useNavigate();
-  const [active, setActive] = useState("dishApproval");
+  const active = "dishApproval";
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -258,6 +205,30 @@ function AdminDetailLayout({ children }) {
   );
 }
 
+// Layout cho user detail pages
+function DetailLayout({ children }) {
+  const navigate = useNavigate();
+  const active = "home";
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  return (
+    <AppLayout
+      active={active}
+      onNavigate={(id) => {
+        navigate("/");
+      }}
+      onLogout={handleLogout}
+    >
+      {children}
+    </AppLayout>
+  );
+}
+
 // ============= MAIN APP =============
 
 function App() {
@@ -270,6 +241,15 @@ function App() {
 
         {/* ===== SHARED HOME ROUTE (USER + ADMIN) ===== */}
         <Route path="/" element={<HomeRouter />} />
+
+        <Route
+          path="/dishes/:dishId"
+          element={
+            <DetailLayout>
+              <DishDetail />
+            </DetailLayout>
+          }
+        />
 
         {/* ===== ADMIN-ONLY ROUTES ===== */}
         <Route

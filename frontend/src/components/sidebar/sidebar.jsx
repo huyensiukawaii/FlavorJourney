@@ -1,11 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import "./sidebar.css";
 
 export default function Sidebar({ active = "home", onNavigate, onLogout }) {
   const { t } = useTranslation("sidebar");
-  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isAdmin = user.role === "admin";
 

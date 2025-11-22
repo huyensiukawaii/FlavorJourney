@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./DishApproval.css";
@@ -18,11 +18,7 @@ function DishApproval() {
 
   const currentLang = i18n.language;
 
-  useEffect(() => {
-    fetchDishes();
-  }, [currentStatus, page]);
-
-  const fetchDishes = async () => {
+  const fetchDishes = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +54,11 @@ function DishApproval() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentStatus, page, limit, navigate, t]);
+
+  useEffect(() => {
+    fetchDishes();
+  }, [fetchDishes]);
 
   const handleStatusChange = (status) => {
     setCurrentStatus(status);
