@@ -71,7 +71,7 @@ export default function RegisterDish() {
       return;
     }
 
-    // Validate file type
+  
     if (!file.type.startsWith("image/")) {
       setStatus({
         type: "error",
@@ -99,38 +99,68 @@ export default function RegisterDish() {
     setPreview(url);
   };
 
-  const uploadImage = async (file) => {
-    return uploadAPI.uploadDishImage(file);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setStatus(null);
 
     try {
-      let imageUrl = "";
-
-      // Upload image first if exists
-      if (form.image) {
-        imageUrl = await uploadImage(form.image);
+      // Validate required fields trước
+      if (!form.nameJp || form.nameJp.trim() === "") {
+        setStatus({
+          type: "error",
+          message: "Vui lòng nhập tên món ăn (tiếng Nhật)"
+        });
+        setLoading(false);
+        return;
       }
 
-      // Prepare dish data
+      if (!form.description || form.description.trim() === "") {
+        setStatus({
+          type: "error",
+          message: "Vui lòng nhập mô tả món ăn"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Prepare dish data - đảm bảo tất cả required fields có giá trị
       const dishData = {
-        name_japanese: form.nameJp,
-        name_vietnamese: form.nameVi || form.nameJp,
-        description_vietnamese: form.description,
-        description_japanese: form.description,
-        region_id: form.region ? Number(form.region) : null,
-        category_id: form.category ? Number(form.category) : null,
-        ingredients: form.ingredients || "",
-        spiciness_level: Number(form.spiciness),
-        image_url: imageUrl
+        name_japanese: form.nameJp.trim(),
+        name_vietnamese: (form.nameVi || form.nameJp).trim(),
       };
 
-      // Submit dish
-      await dishAPI.create(dishData);
+      // Thêm description nếu có (optional fields)
+      if (form.description && form.description.trim() !== "") {
+        dishData.description_vietnamese = form.description.trim();
+        dishData.description_japanese = form.description.trim();
+      }
+
+      const spiciness = Number(form.spiciness);
+      if (!isNaN(spiciness) && spiciness >= 0 && spiciness <= 10) {
+        dishData.spiciness_level = spiciness;
+      }
+
+      // Thêm các field optional nếu có giá trị (không phải empty string)
+      if (form.region && form.region.trim() !== "") {
+        const regionId = Number(form.region);
+        if (!isNaN(regionId)) {
+          dishData.region_id = regionId;
+        }
+      }
+      if (form.category && form.category.trim() !== "") {
+        const categoryId = Number(form.category);
+        if (!isNaN(categoryId)) {
+          dishData.category_id = categoryId;
+        }
+      }
+      if (form.ingredients && form.ingredients.trim() !== "") {
+        dishData.ingredients = form.ingredients.trim();
+      }
+
+      console.log("Submitting dish data:", JSON.stringify(dishData, null, 2));
+      console.log("Image file:", form.image ? "Present" : "Not present");
+      await dishAPI.create(dishData, form.image);
 
       setStatus({
         type: "success",
@@ -142,9 +172,23 @@ export default function RegisterDish() {
         handleReset();
       }, 2000);
     } catch (err) {
+      console.error("Error submitting dish:", err);
+      console.error("Error details:", {
+        message: err.message,
+        stack: err.stack
+      });
+      
+      // Luôn hiển thị message tiếng Việt
+      let errorMessage = "Gửi món ăn thất bại";
+      
+      if (err.message && err.message !== "Bad Request") {
+        // Nếu có message từ server và không phải generic "Bad Request", dùng message đó
+        errorMessage = err.message;
+      }
+      
       setStatus({
         type: "error",
-        message: err.message || t("submit_error", { defaultValue: "Gửi món ăn thất bại" })
+        message: errorMessage
       });
     } finally {
       setLoading(false);

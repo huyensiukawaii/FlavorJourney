@@ -76,12 +76,102 @@ export const authAPI = {
 
 // ============= DISH API =============
 export const dishAPI = {
-  create: async (dishData) => {
+  create: async (dishData, imageFile = null) => {
+    const token = localStorage.getItem("access_token");
+    const lang = localStorage.getItem("lang") || "vi";
+    
+    let headers = {
+      "x-lang": lang,
+    };
+    
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    let body;
+    
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      Object.keys(dishData).forEach((key) => {
+        const value = dishData[key];
+        if (value !== null && value !== undefined) {
+          if (typeof value === 'number') {
+            formData.append(key, value.toString());
+          } else if (typeof value === 'string') {
+            formData.append(key, value);
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(dishData);
+    }
+    
     const response = await fetch(`${API_BASE}/dishes`, {
       method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(dishData),
+      headers,
+      body,
     });
+    
+    if (!response.ok) {
+      const responseClone = response.clone();
+      let errorData;
+      let errorText;
+      
+      try {
+        errorText = await responseClone.text();
+        if (errorText) {
+          errorData = JSON.parse(errorText);
+        } else {
+          errorData = {};
+        }
+      } catch (e) {
+        errorData = { 
+          message: `Lỗi ${response.status}: ${response.statusText}`,
+          statusCode: response.status
+        };
+      }
+      
+      let errorMessage = "Gửi món ăn thất bại";
+      
+      if (errorData.message) {
+        if (Array.isArray(errorData.message)) {
+          errorMessage = errorData.message[0] || errorMessage;
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (typeof errorData.message === 'object') {
+          const firstError = Object.values(errorData.message)[0];
+          if (Array.isArray(firstError)) {
+            errorMessage = firstError[0] || errorMessage;
+          } else if (typeof firstError === 'string') {
+            errorMessage = firstError;
+          }
+        }
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+      
+      if (errorMessage === "Bad Request" || errorMessage === "Gửi món ăn thất bại") {
+        if (errorData.statusCode === 400) {
+          if (errorData.message && Array.isArray(errorData.message)) {
+            errorMessage = errorData.message.join(", ");
+          } else if (errorData.message && typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          } else {
+            errorMessage = "Gửi món ăn thất bại. Vui lòng kiểm tra lại thông tin đã nhập.";
+          }
+        } else {
+          errorMessage = `Gửi món ăn thất bại (${errorData.statusCode || response.status}). Vui lòng kiểm tra lại thông tin đã nhập.`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
     return handleResponse(response);
   },
 
@@ -146,7 +236,16 @@ export const uploadAPI = {
     });
     
     const data = await handleResponse(response);
-    return data.image_url || data.url;
+    console.log("Upload API response:", data);
+    
+    const imageUrl = data.url || data.image_url;
+    console.log("Extracted image URL:", imageUrl);
+    
+    if (!imageUrl) {
+      throw new Error("Không nhận được URL ảnh từ server");
+    }
+    
+    return imageUrl;
   },
 };
 
