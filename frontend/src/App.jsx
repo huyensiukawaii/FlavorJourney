@@ -184,37 +184,6 @@ function AdminHome() {
         );
       case "home":
       default:
-        return (
-          <>
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <label htmlFor="lang-select" style={{ fontWeight: 600 }}>
-                {t("language")}:
-              </label>
-              <select id="lang-select" value={lang} onChange={handleChangeLang}>
-                <option value="vi">{t("lang_vi")}</option>
-                <option value="jp">{t("lang_jp")}</option>
-              </select>
-            </div>
-            <h1>{t("welcome", { name })}</h1>
-            <p>{t("loggedIn")}</p>
-            <div style={{ marginTop: 16 }}>
-              <button
-                className="btn-secondary"
-                onClick={() => onReturnToLogin && onReturnToLogin()}
-              >
-                {t("backToLogin")}
-              </button>
-            </div>
-          </>
-        );
-      case "home":
         return <HomeContent />;
     }
   };

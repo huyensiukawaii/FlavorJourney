@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./RegisterDish.css";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+import { dishAPI, uploadAPI, optionsAPI } from "../../services/api";
 
 export default function RegisterDish() {
   const { t, i18n } = useTranslation("dishForm");
@@ -23,28 +22,26 @@ export default function RegisterDish() {
   const [regions, setRegions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
+  // Cleanup object URL to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   // Fetch categories và regions từ API
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        const headers = {
-          "Content-Type": "application/json",
-        };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const [categoriesRes, regionsRes] = await Promise.all([
-          fetch(`${API_BASE}/categories`, { headers }),
-          fetch(`${API_BASE}/regions`, { headers })
+        const [categoriesData, regionsData] = await Promise.all([
+          optionsAPI.getCategories(),
+          optionsAPI.getRegions(),
         ]);
 
-        const categoriesData = await categoriesRes.json();
-        const regionsData = await regionsRes.json();
-
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-        setRegions(Array.isArray(regionsData) ? regionsData : []);
+        setCategories(categoriesData);
+        setRegions(regionsData);
       } catch (err) {
         console.error("Error fetching options:", err);
         setCategories([]);
@@ -65,8 +62,21 @@ export default function RegisterDish() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) {
+      // Cleanup previous preview if exists
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
       setForm((prev) => ({ ...prev, image: null }));
       setPreview("");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setStatus({
+        type: "error",
+        message: t("upload_error_type", { defaultValue: "Chỉ chấp nhận file ảnh" })
+      });
       return;
     }
 
@@ -79,34 +89,18 @@ export default function RegisterDish() {
       return;
     }
 
+    // Cleanup previous preview if exists
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
     setForm((prev) => ({ ...prev, image: file }));
     const url = URL.createObjectURL(file);
     setPreview(url);
   };
 
   const uploadImage = async (file) => {
-    const token = localStorage.getItem("access_token");
-    const formData = new FormData();
-    formData.append("image", file);
-
-    const headers = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE}/upload/dish-image`, {
-      method: "POST",
-      headers,
-      body: formData
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Upload failed");
-    }
-
-    const data = await response.json();
-    return data.image_url || data.url;
+    return uploadAPI.uploadDishImage(file);
   };
 
   const handleSubmit = async (e) => {
@@ -136,26 +130,7 @@ export default function RegisterDish() {
       };
 
       // Submit dish
-      const token = localStorage.getItem("access_token");
-      const headers = {
-        "Content-Type": "application/json",
-        "x-lang": i18n.language || "vi"
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_BASE}/dishes`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(dishData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || data.error || t("submit_error", { defaultValue: "Gửi món ăn thất bại" }));
-      }
+      await dishAPI.create(dishData);
 
       setStatus({
         type: "success",
@@ -177,6 +152,10 @@ export default function RegisterDish() {
   };
 
   const handleReset = () => {
+    // Cleanup preview URL
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setForm({
       nameJp: "",
       nameVi: "",
