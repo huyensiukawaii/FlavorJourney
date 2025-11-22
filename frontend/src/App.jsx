@@ -1,18 +1,48 @@
 import { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import DishApproval from "./pages/DishApproval";
+import DishDetail from "./pages/DishDetail";
 import RegisterDish from "./pages/RegisterDish/RegisterDish";
 import "./App.css";
 import { useTranslation } from "react-i18next";
 import Sidebar from "./components/sidebar/sidebar";
 
-function Home({ onReturnToLogin }) {
+// ============= SHARED COMPONENTS =============
+
+// Layout wrapper với sidebar
+function AppLayout({ children, active, onNavigate, onLogout }) {
+  return (
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <Sidebar active={active} onNavigate={onNavigate} onLogout={onLogout} />
+      <main
+        style={{
+          flex: 1,
+          padding: active === "dishApproval" ? 0 : 24,
+          textAlign: "left",
+        }}
+      >
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// Home content chung cho cả user và admin
+function HomeContent() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const { t, i18n } = useTranslation("homepage");
+  const navigate = useNavigate();
   const [lang, setLang] = useState(
     localStorage.getItem("lang") || i18n.language || "vi"
   );
-  const [active, setActive] = useState("home");
 
   const name =
     user.username || user.email || (lang === "jp" ? "ユーザー" : "Người dùng");
@@ -24,8 +54,111 @@ function Home({ onReturnToLogin }) {
     i18n.changeLanguage(value);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <label htmlFor="lang-select" style={{ fontWeight: 600 }}>
+          {t("language")}:
+        </label>
+        <select id="lang-select" value={lang} onChange={handleChangeLang}>
+          <option value="vi">{t("lang_vi")}</option>
+          <option value="jp">{t("lang_jp")}</option>
+        </select>
+      </div>
+      <h1>{t("welcome", { name })}</h1>
+      <p>{t("loggedIn")}</p>
+      <div style={{ marginTop: 16 }}>
+        <button className="btn-secondary" onClick={handleLogout}>
+          {t("backToLogin")}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ============= USER HOME =============
+
+function UserHome() {
+  const navigate = useNavigate();
+  const [active, setActive] = useState("home");
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   const renderContent = () => {
     switch (active) {
+      case "search":
+        return (
+          <>
+            <h1>検索</h1>
+            <p>こちらで料理や場所を検索できます。（デモ）</p>
+          </>
+        );
+      case "register":
+        return <RegisterDish />;
+      case "favorites":
+        return (
+          <>
+            <h1>お気に入り</h1>
+            <p>あなたのお気に入りを表示します。（デモ）</p>
+          </>
+        );
+      case "profile":
+        return (
+          <>
+            <h1>プロフィール</h1>
+            <p>プロフィール情報を編集します。（デモ）</p>
+          </>
+        );
+      case "home":
+      default:
+        return <HomeContent />;
+    }
+  };
+
+  return (
+    <AppLayout
+      active={active}
+      onNavigate={(id) => setActive(id)}
+      onLogout={handleLogout}
+    >
+      {renderContent()}
+    </AppLayout>
+  );
+}
+
+// ============= ADMIN HOME =============
+
+function AdminHome() {
+  const navigate = useNavigate();
+  const [active, setActive] = useState("home");
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  const renderContent = () => {
+    switch (active) {
+      case "dishApproval":
+        return <DishApproval />;
       case "search":
         return (
           <>
@@ -81,60 +214,107 @@ function Home({ onReturnToLogin }) {
             </div>
           </>
         );
+      case "home":
+        return <HomeContent />;
     }
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar
-        active={active}
-        onNavigate={(id) => setActive(id)}
-        onLogout={() => onReturnToLogin && onReturnToLogin()}
-      />
-      <main style={{ flex: 1, padding: 24, textAlign: "left" }}>
-        {renderContent()}
-      </main>
-    </div>
+    <AppLayout
+      active={active}
+      onNavigate={(id) => setActive(id)}
+      onLogout={handleLogout}
+    >
+      {renderContent()}
+    </AppLayout>
   );
 }
 
-function App() {
-  const [mode, setMode] = useState(() =>
-    localStorage.getItem("access_token") ? "home" : "login"
-  );
+// ============= ROUTE COMPONENTS =============
 
-  useEffect(() => {
-    // If user logs in (access_token set), switch to home
-    const onStorage = () => {
-      if (localStorage.getItem("access_token")) setMode("home");
-      else setMode("login");
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+// Home route selector - chọn UserHome hoặc AdminHome
+function HomeRouter() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const token = localStorage.getItem("access_token");
 
-  // Logout removed per request: Home no longer shows logout and app will keep token until user clears it
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-  const handleReturnToLogin = () => {
-    // client-only: clear token/user from localStorage and show login
+  // Admin thì hiển thị AdminHome, user thường hiển thị UserHome
+  return user.role === "admin" ? <AdminHome /> : <UserHome />;
+}
+
+// Protected admin route
+function AdminProtectedRoute({ children }) {
+  const token = localStorage.getItem("access_token");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+// Layout cho admin detail pages
+function AdminDetailLayout({ children }) {
+  const navigate = useNavigate();
+  const [active, setActive] = useState("dishApproval");
+
+  const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    setMode("login");
+    navigate("/login");
   };
 
   return (
-    <>
-      {mode === "login" && (
-        <Login
-          onSwitchToRegister={() => setMode("register")}
-          onLoginSuccess={() => setMode("home")}
+    <AppLayout
+      active={active}
+      onNavigate={(id) => {
+        if (id === "dishApproval") {
+          navigate("/");
+        } else {
+          navigate("/");
+        }
+      }}
+      onLogout={handleLogout}
+    >
+      {children}
+    </AppLayout>
+  );
+}
+
+// ============= MAIN APP =============
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* ===== PUBLIC ROUTES ===== */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* ===== SHARED HOME ROUTE (USER + ADMIN) ===== */}
+        <Route path="/" element={<HomeRouter />} />
+
+        {/* ===== ADMIN-ONLY ROUTES ===== */}
+        <Route
+          path="/admin/dishes/:dishId"
+          element={
+            <AdminProtectedRoute>
+              <AdminDetailLayout>
+                <DishDetail />
+              </AdminDetailLayout>
+            </AdminProtectedRoute>
+          }
         />
-      )}
-      {mode === "register" && (
-        <Register onSwitchToLogin={() => setMode("login")} />
-      )}
-      {mode === "home" && <Home onReturnToLogin={handleReturnToLogin} />}
-    </>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
