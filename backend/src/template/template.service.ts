@@ -110,30 +110,9 @@ ${context}
         dishId: dish.id,
         dishNameJapanese: dish.name_japanese,
         dishNameVietnamese: dish.name_vietnamese,
-
-        category: dish.category
-          ? {
-              id: dish.category.id,
-              name_japanese: dish.category.name_japanese,
-              name_vietnamese: dish.category.name_vietnamese,
-            }
-          : null,
-
-        region: dish.region
-          ? {
-              id: dish.region.id,
-              name_japanese: dish.region.name_japanese,
-              name_vietnamese: dish.region.name_vietnamese,
-            }
-          : null,
-
-        context: context || null,
-        tasteDescription: tasteDescription || null,
-        ingredients: dish.ingredients || null,
-        howToEat: dish.how_to_eat || null,
         audio_url: audioUrl,
-        generatedTextJa: parsedJSON.generatedTextJa,
-        generatedTextVi: parsedJSON.generatedTextVi,
+        generated_text_ja: parsedJSON.generatedTextJa,
+        generated_text_vi: parsedJSON.generatedTextVi,
       };
     } catch (err) {
       console.error('OpenAI error:', err);
@@ -145,13 +124,13 @@ ${context}
   async saveTemplate(
     userId: number,
     dishId: number,
-    generatedTextJa: string,
-    generatedTextVi: string,
+    generated_text_ja: string,
+    generated_text_vi: string,
     title?: string,
     context?: string,
-    audioUrl?: string,
+    audio_url?: string,
   ) {
-    if (!dishId || !generatedTextJa || !generatedTextVi) {
+    if (!dishId || !generated_text_ja || !generated_text_vi) {
       throw new BadRequestException(
         'dishId, generatedTextJa and generatedTextVi are required',
       );
@@ -161,11 +140,11 @@ ${context}
       data: {
         user_id: userId,
         dish_id: dishId,
-        generated_text_ja: generatedTextJa,
-        generated_text_vi: generatedTextVi,
+        generated_text_ja,
+        generated_text_vi,
         title: title ?? null,
         context: context ?? null,
-        audio_url: audioUrl ?? null,
+        audio_url: audio_url ?? null,
       },
       include: { dish: true },
     });

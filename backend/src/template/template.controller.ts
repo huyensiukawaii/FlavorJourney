@@ -28,21 +28,21 @@ export class TemplateController {
   async saveTemplate(@Body() body: any, @Req() req) {
     const {
       dishId,
-      generatedTextJa,
-      generatedTextVi,
+      generated_text_ja,
+      generated_text_vi,
       title,
       context,
-      audioUrl,
+      audio_url,
     } = body;
 
     return this.templateService.saveTemplate(
       req.user.id,
       dishId,
-      generatedTextJa,
-      generatedTextVi,
+      generated_text_ja,
+      generated_text_vi,
       title,
       context,
-      audioUrl,
+      audio_url,
     );
   }
 
