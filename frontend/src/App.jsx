@@ -13,8 +13,12 @@ import Home from "./pages/Home/Home";
 import DishApproval from "./pages/DishApproval";
 import DishDetail from "./pages/DishDetail";
 import RegisterDish from "./pages/RegisterDish/RegisterDish";
+import Search from "./pages/Search";
+import ChangePassword from "./pages/ChangePassword/ChangePassword";
 import "./App.css";
 import Sidebar from "./components/sidebar/sidebar";
+import Favorites from "./pages/Favorites/Favorites";
+import Profile from "./pages/Profile/Profile";
 
 // ============= SHARED COMPONENTS =============
 
@@ -51,28 +55,13 @@ function UserHome() {
   const renderContent = () => {
     switch (active) {
       case "search":
-        return (
-          <>
-            <h1>検索</h1>
-            <p>こちらで料理や場所を検索できます。（デモ）</p>
-          </>
-        );
+        return <Search />;
       case "register":
         return <RegisterDish />;
       case "favorites":
-        return (
-          <>
-            <h1>お気に入り</h1>
-            <p>あなたのお気に入りを表示します。（デモ）</p>
-          </>
-        );
+        return <Favorites />;
       case "profile":
-        return (
-          <>
-            <h1>プロフィール</h1>
-            <p>プロフィール情報を編集します。（デモ）</p>
-          </>
-        );
+        return <Profile />;
       case "home":
       default:
         return <Home />;
@@ -107,10 +96,12 @@ function AdminHome() {
       case "dishApproval":
         return <DishApproval />;
       case "search":
+        return <Search />;
+      case "register":
         return (
           <>
-            <h1>検索</h1>
-            <p>こちらで料理や場所を検索できます。（デモ）</p>
+            <h1>登録</h1>
+            <p>新しい投稿やレストランを登録します。（デモ）</p>
           </>
         );
       case "register":
@@ -237,7 +228,16 @@ function App() {
       <Routes>
         {/* ===== PUBLIC ROUTES ===== */}
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route 
+          path="/change-password" 
+          element={
+            <DetailLayout>
+              <ChangePassword />
+            </DetailLayout>
+          } 
+        />
 
         {/* ===== SHARED HOME ROUTE (USER + ADMIN) ===== */}
         <Route path="/" element={<HomeRouter />} />

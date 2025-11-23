@@ -1,0 +1,39 @@
+{
+  "eyebrow": "Hành trình hương vị · Việt Nam",
+  "hero_tip": "Lưu lại điều kiện yêu thích để tìm nhanh hơn ở lần sau.",
+  "title": "Tìm kiếm món ăn",
+  "subtitle": "Tìm kiếm hàng trăm món ăn yêu thích của bạn",
+  "start_search_prompt": "Nhập từ khóa hoặc chọn bộ lọc để bắt đầu tìm kiếm.",
+  "search_label": "Tìm kiếm",
+  "search_placeholder": "Tìm kiếm theo tên, nguyên liệu...",
+  "search_cta": "Tìm kiếm",
+  "filter_summary": "Áp dụng bộ lọc",
+  "sort_label": "Sắp xếp",
+  "sort": {
+    "latest": "Mới nhất",
+    "popular": "Phổ biến nhất"
+  },
+  "category_label": "Danh mục",
+  "all_categories": "Tất cả danh mục",
+  "region_label": "Vùng miền",
+  "all_regions": "Toàn bộ vùng miền",
+  "taste_label": "Vị ăn",
+  "taste": {
+    "spicy": "Cay",
+    "salty": "Mặn",
+    "sweet": "Ngọt",
+    "sour": "Chua"
+  },
+  "spice_none": "Không cay",
+  "spice_selected": "Độ cay {{ level }}",
+  "options_fallback": "Hiển thị dữ liệu mẫu do không lấy được từ máy chủ.",
+  "reset_filters": "Đặt lại bộ lọc",
+  "loading": "Đang tải...",
+  "error": "Đã xảy ra lỗi",
+  "no_results": "Không tìm thấy kết quả",
+  "results_found": "Tìm thấy {{ count }} món ăn",
+  "submitted_by": "Được gửi bởi: {{ user }}",
+  "previous": "Trước",
+  "next": "Tiếp",
+  "page_info": "Trang {{ current }} / {{ total }}"
+}

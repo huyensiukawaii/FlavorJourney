@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 function DishDetail() {
   const { t, i18n } = useTranslation("admin");
+  const { t: tf } = useTranslation("favorites");
   const { dishId } = useParams();
   const navigate = useNavigate();
   const [dish, setDish] = useState(null);
@@ -14,6 +15,8 @@ function DishDetail() {
   const [error, setError] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
 
   const currentLang = i18n.language;
 
@@ -46,6 +49,23 @@ function DishDetail() {
 
         const data = await response.json();
         setDish(data);
+
+        // Check favorite state
+        try {
+          const lang = localStorage.getItem("lang") || i18n.language || "vi";
+          const resFav = await fetch(`${API_URL}/favorites/check/${dishId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "x-lang": lang,
+            },
+          });
+          if (resFav.ok) {
+            const j = await resFav.json();
+            setIsFavorite(!!j.isFavorite);
+          }
+        } catch {
+          // ignore
+        }
       } catch (err) {
         console.error("Error fetching dish details:", err);
         setError(t("dishApproval.error"));
@@ -126,6 +146,45 @@ function DishDetail() {
     setRejectionReason("");
   };
 
+  const handleToggleFavorite = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    const lang = localStorage.getItem("lang") || i18n.language || "vi";
+    setFavLoading(true);
+    try {
+      let res;
+      if (isFavorite) {
+        res = await fetch(`${API_URL}/favorites/${dishId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-lang": lang,
+          },
+        });
+      } else {
+        res = await fetch(`${API_URL}/favorites`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "x-lang": lang,
+          },
+          body: JSON.stringify({ dishId: Number(dishId) }),
+        });
+      }
+      if (res && res.ok) {
+        setIsFavorite((v) => !v);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFavLoading(false);
+    }
+  };
+
   const getDishName = (dish) => {
     if (currentLang === "jp") {
       return dish.name_japanese || dish.name_vietnamese;
@@ -186,13 +245,27 @@ function DishDetail() {
     );
   }
 
+  const favLabel = isFavorite
+    ? tf("removeFromFavorites")
+    : tf("addToFavorites");
+
   return (
     <div className="dish-detail-page">
       <div className="dish-detail-header">
         <h1>{t("dishApproval.dishDetails")}</h1>
-        <button className="btn-back" onClick={() => navigate("/")}>
-          {t("dishApproval.back")}
-        </button>
+        <div>
+          <button
+            className="btn-secondary"
+            disabled={favLoading}
+            onClick={handleToggleFavorite}
+            style={{ marginRight: 8 }}
+          >
+            {favLabel}
+          </button>
+          <button className="btn-back" onClick={() => navigate("/")}>
+            {t("dishApproval.back")}
+          </button>
+        </div>
       </div>
 
       <div className="dish-detail-container">

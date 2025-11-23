@@ -7,17 +7,21 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import OpenAI from 'openai';
 import { GenerateTemplateDto } from './dtos/generate-template.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class TemplateService {
   private openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   async generateIntroduction(dto: GenerateTemplateDto) {
     const { dishId, context } = dto;
 
-    // Lấy thông tin món ăn, thêm ingredients và how_to_eat
+    // 1. Lấy thông tin món
     const dish = await this.prisma.dishes.findUnique({
       where: { id: dishId },
       include: { category: true, region: true },
@@ -27,23 +31,17 @@ export class TemplateService {
       throw new BadRequestException('Dish not found');
     }
 
-    // Chuẩn hóa các level về thang 5
-    const spiciness = dish.spiciness_level ?? 0;
-    const saltiness = dish.saltiness_level ?? 0;
-    const sweetness = dish.sweetness_level ?? 0;
-    const sourness = dish.sourness_level ?? 0;
-
-    // Xây taste description có ghi rõ thang
+    // 2. Xử lý taste level
     const tasteDescription = [
-      spiciness ? `辛さ${spiciness}/5` : null,
-      saltiness ? `塩味${saltiness}/5` : null,
-      sweetness ? `甘さ${sweetness}/5` : null,
-      sourness ? `酸味${sourness}/5` : null,
+      dish.spiciness_level ? `辛さ${dish.spiciness_level}/5` : null,
+      dish.saltiness_level ? `塩味${dish.saltiness_level}/5` : null,
+      dish.sweetness_level ? `甘さ${dish.sweetness_level}/5` : null,
+      dish.sourness_level ? `酸味${dish.sourness_level}/5` : null,
     ]
       .filter(Boolean)
       .join('、');
 
-    // Prompt AI, thêm nguyên liệu và cách ăn
+    // 3. Build prompt
     const prompt = `
 あなたはベトナムの学生です。ベトナム料理を日本人の先生に口頭で紹介する文章を作ります。
 以下の料理情報と紹介したいシーン(context)をもとに、自然な会話調で作ってください。
@@ -57,83 +55,67 @@ export class TemplateService {
 説明文: ${dish.description_japanese ?? '説明なし'}
 原材料: ${dish.ingredients ?? 'なし'}
 食べ方: ${dish.how_to_eat ?? 'なし'}
-※各味のレベルは5段階で表しています
+※味のレベルはすべて5段階です。
 ${context}
 
 【要件】
 - Trả về duy nhất 1 JSON, KHÔNG có ký tự thừa
-- JSON structure phải có 2 field: 
+- Cấu trúc JSON:
 {
   "generatedTextJa": "...",
   "generatedTextVi": "..."
 }
-- 日本語で80〜150文字で自然な会話調
-- Tiếng Việt phải dễ hiểu, hấp dẫn, giống đang giới thiệu cho giáo viên
+- "generatedTextJa": Nhật 80〜150文字, hội thoại tự nhiên
+- "generatedTextVi": tiếng Việt dễ hiểu, giống sinh viên giới thiệu món ăn cho thầy
 `;
 
-    if (!process.env.OPENAI_API_KEY) {
-      throw new BadRequestException('OPENAI_API_KEY is not set');
-    }
-
+    // 4. Gọi OpenAI với response_format JSON CHUẨN
     try {
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4.1-mini',
+        model: 'gpt-4.1',
         messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' },
       });
 
-      let rawOutput = completion.choices?.[0]?.message?.content ?? '';
+      let output = completion.choices?.[0]?.message?.content;
 
-      const cleanedOutput = rawOutput
-        .replace(/^```json\s*/, '')
-        .replace(/```$/, '')
-        .trim();
-
-      let generatedTexts: { generatedTextJa: string; generatedTextVi: string } =
-        {
-          generatedTextJa: '',
-          generatedTextVi: '',
-        };
+      if (!output) {
+        output = '';
+      }
+      let parsedJSON: { generatedTextJa: string; generatedTextVi: string };
 
       try {
-        const parsed = JSON.parse(cleanedOutput);
-        if (parsed.generatedTextJa && parsed.generatedTextVi) {
-          generatedTexts = parsed;
-        } else {
-          generatedTexts.generatedTextJa = cleanedOutput;
-          generatedTexts.generatedTextVi = cleanedOutput;
-        }
-      } catch {
-        generatedTexts.generatedTextJa = cleanedOutput;
-        generatedTexts.generatedTextVi = cleanedOutput;
+        parsedJSON = JSON.parse(output);
+      } catch (e) {
+        console.error('JSON parse error:', output);
+        throw new InternalServerErrorException('AI output is not valid JSON');
       }
 
+      // 5. Tạo audio từ generatedTextJa
+      const audioResponse = await this.openai.audio.speech.create({
+        model: 'gpt-4o-mini-tts',
+        voice: 'alloy',
+        input: parsedJSON.generatedTextJa,
+      });
+
+      const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
+
+      const audioUrl = await this.uploadService.uploadTemplateAudio(
+        audioBuffer,
+        dish.id,
+      );
+
+      // 6. Trả kết quả
       return {
         dishId: dish.id,
         dishNameJapanese: dish.name_japanese,
         dishNameVietnamese: dish.name_vietnamese,
-        category: dish.category
-          ? {
-              id: dish.category.id,
-              name_japanese: dish.category.name_japanese,
-              name_vietnamese: dish.category.name_vietnamese,
-            }
-          : null,
-        region: dish.region
-          ? {
-              id: dish.region.id,
-              name_japanese: dish.region.name_japanese,
-              name_vietnamese: dish.region.name_vietnamese,
-            }
-          : null,
-        context: context || null,
-        tasteDescription: tasteDescription || null,
-        ingredients: dish.ingredients || null,
-        howToEat: dish.how_to_eat || null,
-        generatedTextJa: generatedTexts.generatedTextJa,
-        generatedTextVi: generatedTexts.generatedTextVi,
+        audio_url: audioUrl,
+        generated_text_ja: parsedJSON.generatedTextJa,
+        generated_text_vi: parsedJSON.generatedTextVi,
       };
     } catch (err) {
-      console.error('OpenAI completion error:', err);
+      console.error('OpenAI error:', err);
       throw new InternalServerErrorException('Failed to generate introduction');
     }
   }
@@ -142,13 +124,13 @@ ${context}
   async saveTemplate(
     userId: number,
     dishId: number,
-    generatedTextJa: string,
-    generatedTextVi: string,
+    generated_text_ja: string,
+    generated_text_vi: string,
     title?: string,
     context?: string,
-    audioUrl?: string,
+    audio_url?: string,
   ) {
-    if (!dishId || !generatedTextJa || !generatedTextVi) {
+    if (!dishId || !generated_text_ja || !generated_text_vi) {
       throw new BadRequestException(
         'dishId, generatedTextJa and generatedTextVi are required',
       );
@@ -158,11 +140,11 @@ ${context}
       data: {
         user_id: userId,
         dish_id: dishId,
-        generated_text_ja: generatedTextJa,
-        generated_text_vi: generatedTextVi,
+        generated_text_ja,
+        generated_text_vi,
         title: title ?? null,
         context: context ?? null,
-        audio_url: audioUrl ?? null,
+        audio_url: audio_url ?? null,
       },
       include: { dish: true },
     });
