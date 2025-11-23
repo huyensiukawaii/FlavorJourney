@@ -19,6 +19,10 @@ import {
 import { join } from 'path';
 import { UploadModule } from './upload/upload.module';
 import { MailerModule } from 'src/mailer/mailer.module';
+import { TemplateModule } from './template/template.module';
+import { RegionModule } from './region/region.module';
+import { CategoryModule } from './category/category.module';
+import { StatisticsModule } from './statistics/statistics.module';
 import * as fs from 'fs';
 
 @Module({
@@ -51,9 +55,13 @@ import * as fs from 'fs';
     DishModule,
     UploadModule,
     ViewHistoryModule,
+    TemplateModule,
+    RegionModule,
+    CategoryModule,
+    StatisticsModule,
   ],
 
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

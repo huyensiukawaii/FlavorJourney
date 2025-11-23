@@ -1,19 +1,27 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import "./sidebar.css";
+import { PiBowlFood } from "react-icons/pi";
 
 export default function Sidebar({ active = "home", onNavigate, onLogout }) {
-  const { t } = useTranslation("sidebar");
-  const Item = ({ id, icon, label }) => (
+  const { t, i18n } = useTranslation("sidebar");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin";
+
+  const Item = ({ id, icon, label, onClick }) => (
     <div
       className={`fj-item ${active === id ? "active" : ""}`}
-      onClick={() => onNavigate && onNavigate(id)}
+      onClick={onClick || (() => onNavigate && onNavigate(id))}
       role="button"
       aria-label={label}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          onNavigate && onNavigate(id);
+          if (onClick) {
+            onClick();
+          } else {
+            onNavigate && onNavigate(id);
+          }
         }
       }}
     >
@@ -28,7 +36,7 @@ export default function Sidebar({ active = "home", onNavigate, onLogout }) {
     <aside className="fj-sidebar">
       <div className="fj-brand">
         <span className="badge" aria-hidden>
-          📍
+          <PiBowlFood />
         </span>
         <span>{t("brand")}</span>
       </div>
@@ -112,7 +120,58 @@ export default function Sidebar({ active = "home", onNavigate, onLogout }) {
             </svg>
           }
         />
+
+        {isAdmin && (
+          <>
+            <div style={{ margin: "1rem 0", borderTop: "1px solid #e5e7eb" }} />
+            <Item
+              id="dishApproval"
+              label={t("dishApproval")}
+              icon={
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <path
+                    d="M9 12l2 2 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              }
+            />
+          </>
+        )}
       </nav>
+
+      <div className="fj-lang-switch">
+        <button
+          className={`lang-btn ${i18n.language === "vi" ? "active" : ""}`}
+          onClick={() => {
+            i18n.changeLanguage("vi");
+            localStorage.setItem("lang", "vi");
+          }}
+          title={t("lang_vi")}
+        >
+          <img src="/vietnam_flag.svg" alt="VN" />
+        </button>
+        <button
+          className={`lang-btn ${i18n.language === "jp" ? "active" : ""}`}
+          onClick={() => {
+            i18n.changeLanguage("jp");
+            localStorage.setItem("lang", "jp");
+          }}
+          title={t("lang_jp")}
+        >
+          <img src="/japan_flag.png" alt="JP" />
+        </button>
+      </div>
 
       <div className="fj-spacer" />
 
