@@ -457,6 +457,7 @@ export class DishService {
       name_japanese: d.name_japanese,
       name_vietnamese: d.name_vietnamese,
       name_romaji: d.name_romaji ?? undefined,
+      status: d.status ?? undefined,
       description_japanese: d.description_japanese ?? undefined,
       description_vietnamese: d.description_vietnamese ?? undefined,
       description_romaji: d.description_romaji ?? undefined,

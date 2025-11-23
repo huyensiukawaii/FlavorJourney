@@ -18,5 +18,6 @@
     "birthday": "生年月日",
     "save": "保存",
     "cancel": "キャンセル",
-    "editProfile": "プロフィール編集"
+    "editProfile": "プロフィール編集",
+    "changePassword": "パスワード変更"
 }

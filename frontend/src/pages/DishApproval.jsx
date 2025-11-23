@@ -29,7 +29,9 @@ function DishApproval() {
         return;
       }
 
-      const url = `${API_URL}/dishes/admin/dish-submissions?status=${currentStatus}&page=${page}&limit=${limit}`;
+      // Build URL - omit status parameter when fetching all dishes
+      const statusParam = currentStatus === "all" ? "" : `status=${currentStatus}&`;
+      const url = `${API_URL}/dishes/admin/dish-submissions?${statusParam}page=${page}&limit=${limit}`;
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -174,25 +176,29 @@ function DishApproval() {
 
         <div className="status-tabs">
           <button
-            className={`status-tab ${
-              currentStatus === "pending" ? "active" : ""
-            }`}
+            className={`status-tab ${currentStatus === "all" ? "active" : ""
+              }`}
+            onClick={() => handleStatusChange("all")}
+          >
+            {t("dishApproval.allDishes")}
+          </button>
+          <button
+            className={`status-tab ${currentStatus === "pending" ? "active" : ""
+              }`}
             onClick={() => handleStatusChange("pending")}
           >
             {t("dishApproval.pendingList")}
           </button>
           <button
-            className={`status-tab ${
-              currentStatus === "approved" ? "active" : ""
-            }`}
+            className={`status-tab ${currentStatus === "approved" ? "active" : ""
+              }`}
             onClick={() => handleStatusChange("approved")}
           >
             {t("dishApproval.approvedList")}
           </button>
           <button
-            className={`status-tab ${
-              currentStatus === "rejected" ? "active" : ""
-            }`}
+            className={`status-tab ${currentStatus === "rejected" ? "active" : ""
+              }`}
             onClick={() => handleStatusChange("rejected")}
           >
             {t("dishApproval.rejectedList")}
