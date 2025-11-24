@@ -13,6 +13,7 @@ const INITIAL_FILTERS = {
   sort: 'latest',
   page: 1,
   limit: 20,
+  spiciness_level: undefined,
 };
 
 const Search = () => {
@@ -39,6 +40,14 @@ const Search = () => {
       if (filterParams.sort) queryParams.append('sort', filterParams.sort);
       queryParams.append('page', String(filterParams.page || 1));
       queryParams.append('limit', String(filterParams.limit || 20));
+
+      if (
+        filterParams.spiciness_level !== undefined &&
+        filterParams.spiciness_level !== null &&
+        filterParams.spiciness_level !== ''
+      ) {
+        queryParams.append('spiciness_level', String(filterParams.spiciness_level));
+      }
 
       // Thêm category - chỉ gửi nếu là array và có giá trị hợp lệ
       if (Array.isArray(filterParams.category)) {
