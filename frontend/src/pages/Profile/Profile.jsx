@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./Profile.css";
-import { CiCalendarDate } from "react-icons/ci";
+import { CiCalendarDate, CiMail } from "react-icons/ci";
 import { GoPencil } from "react-icons/go";
 import { FaRegEye } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import { CiHeart } from "react-icons/ci";
 import { FaChartLine } from "react-icons/fa6";
+import { LiaBirthdayCakeSolid } from "react-icons/lia";
+import { IoLocationOutline } from "react-icons/io5";
+import { RiLockPasswordLine } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -184,19 +187,34 @@ function Profile() {
           </div>
           <div className="profile-details">
             <h2>{profile?.username}</h2>
-            <p>{profile?.email}</p>
-            <p>{ profile?.birthday ? formatDate(profile.birthday) : "-"}</p>
-            <p>{ profile?.location ? profile.location : "-"}</p>
+            <div className="profile-item">
+              <span className="icon"><CiMail /></span>
+              <p>{profile?.email}</p>
+            </div>
+            <div className="profile-item">
+              <span className="icon"><LiaBirthdayCakeSolid /></span>
+              <p>{profile?.birthday ? formatDate(profile.birthday) : "-"}</p>
+            </div>
+            <div className="profile-item">
+              <span className="icon"><IoLocationOutline /></span>
+              <p>{profile?.location ? profile.location : "-"}</p>
+            </div>
             <div className="profile-meta">
               <span className="icon"><CiCalendarDate /></span>
               <span>{t("joinedDate")}: {formatDate(profile?.registration_date)}</span>
             </div>
           </div>
         </div>
-        <button className="btn-edit" onClick={handleEditClick}>
-          <span><GoPencil /></span>
-          {t("edit")}
-        </button>
+        <div className="profile-actions">
+          <button className="btn-edit" onClick={handleEditClick}>
+            <span><GoPencil /></span>
+            {t("edit")}
+          </button>
+          <button className="btn-change-password" onClick={() => navigate("/change-password")}>
+            <span><RiLockPasswordLine /></span>
+            {t("changePassword")}
+          </button>
+        </div>
       </div>
 
       <div className="stats-grid">
