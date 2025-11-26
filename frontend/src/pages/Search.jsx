@@ -13,6 +13,7 @@ const INITIAL_FILTERS = {
   sort: 'latest',
   page: 1,
   limit: 20,
+  spiciness_level: undefined,
 };
 
 const Search = () => {
@@ -37,23 +38,43 @@ const Search = () => {
       
       if (filterParams.search) queryParams.append('search', filterParams.search);
       if (filterParams.sort) queryParams.append('sort', filterParams.sort);
-      queryParams.append('page', filterParams.page);
-      queryParams.append('limit', filterParams.limit);
+      queryParams.append('page', String(filterParams.page || 1));
+      queryParams.append('limit', String(filterParams.limit || 20));
 
-      // Thêm category
-      filterParams.category.forEach(cat => {
-        queryParams.append('category', cat);
-      });
+      if (
+        filterParams.spiciness_level !== undefined &&
+        filterParams.spiciness_level !== null &&
+        filterParams.spiciness_level !== ''
+      ) {
+        queryParams.append('spiciness_level', String(filterParams.spiciness_level));
+      }
 
-      // Thêm region
-      filterParams.region.forEach(reg => {
-        queryParams.append('region', reg);
-      });
+      // Thêm category - chỉ gửi nếu là array và có giá trị hợp lệ
+      if (Array.isArray(filterParams.category)) {
+        filterParams.category
+          .filter(cat => cat && cat !== 'all' && typeof cat === 'string')
+          .forEach(cat => {
+            queryParams.append('category', cat);
+          });
+      }
 
-      // Thêm taste
-      filterParams.taste.forEach(t => {
-        queryParams.append('taste', t);
-      });
+      // Thêm region - chỉ gửi nếu là array và có giá trị hợp lệ
+      if (Array.isArray(filterParams.region)) {
+        filterParams.region
+          .filter(reg => reg && reg !== 'all' && typeof reg === 'string')
+          .forEach(reg => {
+            queryParams.append('region', reg);
+          });
+      }
+
+      // Thêm taste - chỉ gửi nếu là array và có giá trị hợp lệ
+      if (Array.isArray(filterParams.taste)) {
+        filterParams.taste
+          .filter(t => t && typeof t === 'string')
+          .forEach(t => {
+            queryParams.append('taste', t);
+          });
+      }
 
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
       const token = localStorage.getItem('access_token');

@@ -5,17 +5,8 @@ import './SearchFilters.css';
 const SearchFilters = ({ filters, onFilterChange, onReset }) => {
   const { t } = useTranslation('search');
 
-  const FALLBACK_CATEGORIES = [
-    { id: 'street-food', name_vietnamese: 'Ăn vặt', name_japanese: '屋台グルメ' },
-    { id: 'noodle', name_vietnamese: 'Mì/Phở', name_japanese: '麺料理' },
-    { id: 'drink', name_vietnamese: 'Đồ uống', name_japanese: '飲み物' },
-  ];
-
-  const FALLBACK_REGIONS = [
-    { id: 'north', name_vietnamese: 'Miền Bắc', name_japanese: '北部' },
-    { id: 'central', name_vietnamese: 'Miền Trung', name_japanese: '中部' },
-    { id: 'south', name_vietnamese: 'Miền Nam', name_japanese: '南部' },
-  ];
+const FALLBACK_CATEGORIES = [];
+const FALLBACK_REGIONS = [];
 
   const [localFilters, setLocalFilters] = useState(filters);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
@@ -25,13 +16,27 @@ const SearchFilters = ({ filters, onFilterChange, onReset }) => {
   const [spiceLevel, setSpiceLevel] = useState(0);
 
   useEffect(() => {
-    setLocalFilters(filters);
-    // Khi filters thay đổi từ bên ngoài (ví dụ reset), cập nhật spiceLevel
-    const hasSpicy = filters.taste.includes('spicy');
-    if (!hasSpicy) {
-      setSpiceLevel(0);
-    }
-    // Nếu có spicy, giữ nguyên spiceLevel hiện tại (không reset về 3)
+    const normalizeList = (value) => {
+      if (!Array.isArray(value)) return [];
+      return value
+        .map((item) => {
+          if (!item || item === 'all') return null;
+          const num = Number(item);
+          return Number.isFinite(num) ? String(num) : null;
+        })
+        .filter(Boolean);
+    };
+
+    const convertedFilters = {
+      ...filters,
+      region: normalizeList(filters.region),
+      category: normalizeList(filters.category),
+      taste: Array.isArray(filters.taste) ? filters.taste : [],
+    };
+
+    setLocalFilters(convertedFilters);
+    const nextSpiceLevel = Number(filters.spiciness_level);
+    setSpiceLevel(Number.isFinite(nextSpiceLevel) ? nextSpiceLevel : 0);
   }, [filters]);
 
   // Fetch categories và regions từ API
@@ -82,13 +87,24 @@ const SearchFilters = ({ filters, onFilterChange, onReset }) => {
   };
 
   const handleSearchSubmit = () => {
-    // Khi submit, cập nhật taste filter dựa trên spiceLevel
-    // Backend hiện tại chỉ check >= 3, nên chỉ gửi 'spicy' khi level >= 3
-    const withoutSpicy = localFilters.taste.filter((taste) => taste !== 'spicy');
+    const sanitizeIds = (list) =>
+      Array.isArray(list)
+        ? list
+            .map((value) => {
+              if (!value || value === 'all') return null;
+              const num = Number(value);
+              return Number.isFinite(num) ? String(num) : null;
+            })
+            .filter(Boolean)
+        : [];
+
     const updatedFilters = {
       ...localFilters,
-      taste: spiceLevel >= 3 ? [...withoutSpicy, 'spicy'] : withoutSpicy,
+      region: sanitizeIds(localFilters.region),
+      category: sanitizeIds(localFilters.category),
+      spiciness_level: spiceLevel > 0 ? spiceLevel : undefined,
       page: 1,
+      limit: localFilters.limit || 20,
     };
     onFilterChange(updatedFilters);
   };
@@ -106,7 +122,6 @@ const SearchFilters = ({ filters, onFilterChange, onReset }) => {
       category: categoryId === 'all' ? [] : [categoryId],
       page: 1,
     };
-    // Chỉ update local state, không gọi API ngay
     setLocalFilters(updatedFilters);
   };
 
@@ -117,7 +132,6 @@ const SearchFilters = ({ filters, onFilterChange, onReset }) => {
       region: regionId === 'all' ? [] : [regionId],
       page: 1,
     };
-    // Chỉ update local state, không gọi API ngay
     setLocalFilters(updatedFilters);
   };
 
@@ -153,7 +167,7 @@ const SearchFilters = ({ filters, onFilterChange, onReset }) => {
           </button>
         </div>
         <button type="button" className="filter-summary" onClick={handleSearchSubmit}>
-          {t('Áp dụng bộ lọc')}
+          {t('filter_summary')}
         </button>
       </div>
 

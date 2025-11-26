@@ -19,6 +19,10 @@ function DishDetail() {
   const [favLoading, setFavLoading] = useState(false);
 
   const currentLang = i18n.language;
+  
+  // Check if user is admin
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin";
 
   useEffect(() => {
     const fetchDishDetail = async () => {
@@ -76,6 +80,30 @@ function DishDetail() {
 
     fetchDishDetail();
   }, [dishId, navigate, t]);
+
+  useEffect(() => {
+    const saveViewHistory = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token || !dish?.id) {
+          return;
+        }
+
+        await fetch(`${API_URL}/view-history`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ dish_id: Number(dish.id) }),
+        });
+      } catch (err) {
+        console.error("Failed to save view history", err);
+      }
+    };
+
+    saveViewHistory();
+  }, [dish]);
 
   const handleApprove = async () => {
     if (!window.confirm(t("dishApproval.confirmApprove"))) {
@@ -269,12 +297,14 @@ function DishDetail() {
       </div>
 
       <div className="dish-detail-container">
-        <div className="dish-status-section">
-          <span className="info-label">{t("dishApproval.status")}:</span>
-          <span className={`status-badge ${dish.status || "pending"}`}>
-            {t(`dishApproval.${dish.status || "pending"}`)}
-          </span>
-        </div>
+        {isAdmin && (
+          <div className="dish-status-section">
+            <span className="info-label">{t("dishApproval.status")}:</span>
+            <span className={`status-badge ${dish.status || "pending"}`}>
+              {t(`dishApproval.${dish.status || "pending"}`)}
+            </span>
+          </div>
+        )}
 
         <div className="dish-content">
           <div className="dish-image-section">
