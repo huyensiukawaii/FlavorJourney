@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AIIntroGenerator from "./ai-generator/AIIntroGenerator";
@@ -18,9 +18,10 @@ function DishDetail() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const viewHistorySaved = useRef(false);
 
   const currentLang = i18n.language;
-  
+
   // Check if user is admin
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isAdmin = user.role === "admin";
@@ -55,6 +56,23 @@ function DishDetail() {
         const data = await response.json();
         setDish(data);
 
+        // Save view history once after fetching dish successfully
+        if (!viewHistorySaved.current && data?.id) {
+          viewHistorySaved.current = true;
+          try {
+            await fetch(`${API_URL}/view-history`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ dish_id: Number(data.id) }),
+            });
+          } catch (err) {
+            console.error("Failed to save view history", err);
+          }
+        }
+
         // Check favorite state
         try {
           const lang = localStorage.getItem("lang") || i18n.language || "vi";
@@ -81,30 +99,6 @@ function DishDetail() {
 
     fetchDishDetail();
   }, [dishId, navigate, t]);
-
-  useEffect(() => {
-    const saveViewHistory = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token || !dish?.id) {
-          return;
-        }
-
-        await fetch(`${API_URL}/view-history`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ dish_id: Number(dish.id) }),
-        });
-      } catch (err) {
-        console.error("Failed to save view history", err);
-      }
-    };
-
-    saveViewHistory();
-  }, [dish]);
 
   const handleApprove = async () => {
     if (!window.confirm(t("dishApproval.confirmApprove"))) {
