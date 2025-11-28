@@ -238,17 +238,6 @@ function DishDetail() {
     return region.name_vietnamese || region.name_japanese;
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString(currentLang === "jp" ? "ja-JP" : "vi-VN");
-  };
-
-  const getTasteLevelWidth = (level) => {
-    if (!level) return "0%";
-    return `${(level / 5) * 100}%`;
-  };
-
   const getSpiceLevelText = (level) => {
     if (!level || level === 0)
       return currentLang === "jp" ? "辛くない" : "Không cay";
@@ -301,13 +290,10 @@ function DishDetail() {
     <div className="dish-detail-page">
       {/* Back Button Header */}
       <div className="dish-detail-header">
-        <button
-          className="btn-back-to-search"
-          onClick={() => navigate("/search")}
-        >
+        <button className="btn-back-to-search" onClick={() => navigate("/")}>
           <span className="back-arrow">←</span>
           <span>
-            {currentLang === "jp" ? "検索に戻る" : "Quay lại tìm kiếm"}
+            {currentLang === "jp" ? "ホームに戻る" : "Quay lại trang chủ"}
           </span>
         </button>
         {isAdmin && (
@@ -319,11 +305,7 @@ function DishDetail() {
         )}
       </div>
 
-      <div
-        className={`dish-detail-layout ${
-          dish.status !== "pending" ? "single-column" : ""
-        }`}
-      >
+      <div className="dish-detail-layout">
         {/* LEFT COLUMN - Dish Info */}
         <div className="dish-detail-main">
           <div className="dish-info-wrapper">
@@ -480,12 +462,10 @@ function DishDetail() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN - AI Generator - Only show for pending dishes */}
-        {dish.status === "pending" && (
-          <div className="ai-panel-wrapper">
-            <AIIntroGenerator dish={dish} />
-          </div>
-        )}
+        {/* RIGHT COLUMN - AI Generator */}
+        <div className="ai-panel-wrapper">
+          <AIIntroGenerator dish={dish} />
+        </div>
       </div>
 
       {showRejectModal && (

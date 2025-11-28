@@ -287,7 +287,7 @@
   gap: 8px;
   width: 100%;
   padding: 14px 24px;
-  background-color: #ff7a3d;
+  background-color: #e07a3f;
   color: white;
   border: none;
   border-radius: 8px;
@@ -298,9 +298,9 @@
 }
 
 .btn-favorite:hover:not(:disabled) {
-  background-color: #ff6a2e;
+  background-color: #d06a2f;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 122, 61, 0.3);
+  box-shadow: 0 4px 12px rgba(224, 122, 63, 0.3);
 }
 
 .btn-favorite:disabled {
@@ -309,11 +309,13 @@
 }
 
 .btn-favorite.active {
-  background-color: #ef4444;
+  background-color: #e07a3f;
+  opacity: 0.9;
 }
 
 .btn-favorite.active:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: #d06a2f;
+  opacity: 1;
 }
 
 .favorite-icon {

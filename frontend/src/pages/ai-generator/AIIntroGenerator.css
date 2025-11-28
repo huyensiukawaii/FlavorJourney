@@ -1,9 +1,9 @@
 .ai-generator-card {
-  background: #FF945C;
+  background: #ffe0cf;
   border-radius: 18px;
   padding: 20px;
-  color: #4a1d0f;
-  box-shadow: 0 4px 12px rgba(255, 148, 92, 0.2);
+  color: #333;
+  box-shadow: 0 4px 12px rgba(224, 122, 63, 0.2);
 }
 
 .ai-generator-header h2 {
@@ -46,7 +46,7 @@
 }
 
 .ai-label textarea {
-  border: 1px solid rgba(255, 122, 61, 0.3);
+  border: 1px solid rgba(224, 122, 63, 0.3);
   border-radius: 12px;
   padding: 12px;
   resize: vertical;
@@ -58,8 +58,8 @@
 
 .ai-label textarea:focus {
   outline: none;
-  border-color: #FF7A3D;
-  box-shadow: 0 0 0 2px rgba(255, 122, 61, 0.2);
+  border-color: #e07a3f;
+  box-shadow: 0 0 0 2px rgba(224, 122, 63, 0.2);
 }
 
 .ai-error {
@@ -74,7 +74,7 @@
   border: none;
   border-radius: 999px;
   padding: 12px 24px;
-  background: #FF6A2E;
+  background: #e07a3f;
   color: #fff;
   font-weight: 600;
   font-size: 15px;
@@ -91,8 +91,8 @@
 
 .ai-generate-btn:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 106, 46, 0.3);
-  background: #FF5A1E;
+  box-shadow: 0 4px 12px rgba(224, 122, 63, 0.3);
+  background: #d06a2f;
 }
 
 .ai-results {
@@ -133,19 +133,19 @@
 }
 
 .ai-results-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 122, 61, 0.4);
+  background: rgba(224, 122, 63, 0.4);
   border-radius: 3px;
 }
 
 .ai-results-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 122, 61, 0.6);
+  background: rgba(224, 122, 63, 0.6);
 }
 
 .ai-result-card {
   background: #fff;
   border-radius: 12px;
   padding: 14px;
-  border: 1px solid rgba(255, 122, 61, 0.15);
+  border: 1px solid rgba(224, 122, 63, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
@@ -230,12 +230,12 @@
 }
 
 .ai-copy-card {
-  border: 1px solid #FF7A3D;
+  border: 1px solid #e07a3f;
   width: 100%;
   border-radius: 8px;
   padding: 8px 16px;
   background: transparent;
-  color: #FF7A3D;
+  color: #e07a3f;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -248,16 +248,16 @@
 }
 
 .ai-copy-card:hover {
-  background: #FF7A3D;
+  background: #e07a3f;
   color: white;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 122, 61, 0.3);
+  box-shadow: 0 2px 8px rgba(224, 122, 63, 0.3);
 }
 
 .ai-copy-card.copied {
-  background: #FFE8DD;
-  border-color: #FF7A3D;
-  color: #FF7A3D;
+  background: #ffeade;
+  border-color: #e07a3f;
+  color: #e07a3f;
 }
 
 .ai-audio-player {
