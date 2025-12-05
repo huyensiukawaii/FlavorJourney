@@ -18,9 +18,11 @@ function DishDetail() {
   const [error, setError] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const viewHistorySaved = useRef(false);
 
   const currentLang = i18n.language;
@@ -177,6 +179,41 @@ function DishDetail() {
   const handleRejectCancel = () => {
     setShowRejectModal(false);
     setRejectionReason("");
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setDeleteLoading(true);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/dishes/${dishId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete dish");
+      }
+
+      toast.success(t("dishApproval.deleteSuccess"));
+      setShowDeleteModal(false);
+      navigate("/");
+    } catch (err) {
+      console.error("Error deleting dish:", err);
+      toast.error(t("dishApproval.deleteFailed"));
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const handleToggleFavorite = async () => {
@@ -533,6 +570,19 @@ function DishDetail() {
               </div>
             )}
 
+            {/* Admin Delete Button */}
+            {isAdmin && (
+              <div className="dish-section-card">
+                <button
+                  className="btn btn-delete"
+                  onClick={handleDeleteClick}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? t("dishApproval.loading") : t("dishApproval.delete")}
+                </button>
+              </div>
+            )}
+
             {/* Rejection Reason (Admin only) */}
             {isAdmin && dish.status === "rejected" && dish.rejection_reason && (
               <div className="dish-section-card">
@@ -585,6 +635,22 @@ function DishDetail() {
                 {t("dishApproval.cancel")}
               </button>
               <button className="btn btn-reject" onClick={handleRejectConfirm}>
+                {t("dishApproval.confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={handleDeleteCancel}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{t("dishApproval.confirmDelete")}</h3>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={handleDeleteCancel} disabled={deleteLoading}>
+                {t("dishApproval.cancel")}
+              </button>
+              <button className="btn btn-delete" onClick={handleDeleteConfirm} disabled={deleteLoading}>
                 {t("dishApproval.confirm")}
               </button>
             </div>

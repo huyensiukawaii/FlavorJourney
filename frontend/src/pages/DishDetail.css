@@ -396,6 +396,30 @@
   background-color: #dc2626;
 }
 
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Rejection Section */
 .rejection-section {
   padding: 0;
