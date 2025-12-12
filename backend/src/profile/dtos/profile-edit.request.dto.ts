@@ -36,4 +36,10 @@ export class ProfileEditRequestDto {
     { message: i18nValidationMessage('profile.validation.email_invalid') },
   )
   email?: string;
+
+  @IsOptional()
+  @IsString({
+    message: i18nValidationMessage('profile.validation.avatar_url_string'),
+  })
+  avatar_url?: string;
 }

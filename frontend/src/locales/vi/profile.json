@@ -26,5 +26,11 @@
   "save": "Lưu",
   "cancel": "Hủy",
   "editProfile": "Chỉnh sửa hồ sơ",
-  "changePassword": "Đổi mật khẩu"
+  "changePassword": "Đổi mật khẩu",
+  "chooseAvatar": "Chọn ảnh đại diện",
+  "saveAvatar": "Lưu ảnh đại diện",
+  "uploading": "Đang tải lên...",
+  "avatarUpdated": "Ảnh đại diện đã được cập nhật",
+  "avatarTooLarge": "Kích thước ảnh đại diện phải dưới 2MB",
+  "invalidImageFormat": "Vui lòng chọn file ảnh"
 }

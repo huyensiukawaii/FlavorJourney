@@ -15,6 +15,7 @@ model users {
   role                              UserRole?                 @default(user)
   birthday                          DateTime?                 @db.Date
   location                          String?                   @db.VarChar(255)
+  avatar_url                        String?                   @db.VarChar(500)
   registration_date                 DateTime?                 @default(now()) @db.DateTime(0)
   consecutive_login_days            Int?                      @default(0)
   save_login_info                   Boolean?                  @default(false)

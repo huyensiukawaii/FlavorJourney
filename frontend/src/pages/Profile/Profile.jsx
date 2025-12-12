@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./Profile.css";
 import { CiCalendarDate, CiMail } from "react-icons/ci";
 import { GoPencil } from "react-icons/go";
@@ -34,6 +36,9 @@ function Profile() {
     email: "",
     birthday: "",
   });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const currentLang = i18n.language;
 
@@ -167,6 +172,82 @@ function Profile() {
     return category.name_vietnamese || category.name_japanese;
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(t("avatarTooLarge") || "Avatar size must be under 2MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error(t("invalidImageFormat") || "Please select an image file");
+        return;
+      }
+
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!avatarFile) return;
+
+    try {
+      setUploadingAvatar(true);
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      const formData = new FormData();
+      formData.append("avatar", avatarFile);
+
+      const uploadRes = await fetch(`${API_URL}/upload/avatar`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error("Failed to upload avatar");
+
+      const uploadData = await uploadRes.json();
+      const avatarUrl = uploadData.url;
+
+      // Update profile with new avatar URL
+      const userStr = localStorage.getItem("user");
+      const user = JSON.parse(userStr);
+      const userId = user.id || user.sub;
+
+      const updateRes = await fetch(`${API_URL}/users/profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: Number(userId),
+          avatar_url: avatarUrl,
+        }),
+      });
+
+      if (!updateRes.ok) throw new Error("Failed to update profile");
+
+      const updatedProfile = await updateRes.json();
+      setProfile(updatedProfile);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      toast.success(t("avatarUpdated") || "Avatar updated successfully!");
+    } catch (err) {
+      console.error("Error uploading avatar:", err);
+      toast.error(t("error") || "Failed to upload avatar");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleEditClick = () => {
     setEditForm({
       location: profile?.location || "",
@@ -214,7 +295,7 @@ function Profile() {
       setIsEditing(false);
     } catch (err) {
       console.error("Error updating profile:", err);
-      alert(t("error"));
+      toast.error(t("error"));
     }
   };
 
@@ -234,8 +315,49 @@ function Profile() {
 
       <div className="profile-card">
         <div className="profile-info">
-          <div className="profile-avatar">
-            {profile?.username?.charAt(0).toUpperCase()}
+          <div className="profile-avatar-container">
+            <div className="profile-avatar">
+              {profile?.avatar_url ? (
+                <img
+                  src={avatarPreview || profile.avatar_url}
+                  alt={profile?.username}
+                  className="avatar-image"
+                />
+              ) : avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Preview"
+                  className="avatar-image"
+                />
+              ) : (
+                <span className="avatar-initial">
+                  {profile?.username?.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div className="avatar-upload-section">
+              <input
+                type="file"
+                id="avatar-input"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                style={{ display: "none" }}
+              />
+              <label htmlFor="avatar-input" className="btn-upload-avatar">
+                {t("chooseAvatar") || "Choose Avatar"}
+              </label>
+              {avatarFile && (
+                <button
+                  className="btn-save-avatar"
+                  onClick={handleUploadAvatar}
+                  disabled={uploadingAvatar}
+                >
+                  {uploadingAvatar
+                    ? t("uploading") || "Uploading..."
+                    : t("saveAvatar") || "Save Avatar"}
+                </button>
+              )}
+            </div>
           </div>
           <div className="profile-details">
             <h2>{profile?.username}</h2>
@@ -503,6 +625,18 @@ function Profile() {
           </div>
         </div>
       )}
+
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }

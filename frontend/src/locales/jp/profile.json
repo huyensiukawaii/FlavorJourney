@@ -26,5 +26,11 @@
   "save": "保存",
   "cancel": "キャンセル",
   "editProfile": "プロフィール編集",
-  "changePassword": "パスワード変更"
+  "changePassword": "パスワード変更",
+  "chooseAvatar": "アバターを選択",
+  "saveAvatar": "アバターを保存",
+  "uploading": "アップロード中...",
+  "avatarUpdated": "アバターが更新されました",
+  "avatarTooLarge": "アバターのサイズは2MB以下である必要があります",
+  "invalidImageFormat": "画像ファイルを選択してください"
 }

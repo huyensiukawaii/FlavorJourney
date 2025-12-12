@@ -34,7 +34,7 @@ export class ProfileService {
 
   async editProfile(profileEditRequestDto: any): Promise<ProfileResponseDto> {
     // Logic to edit profile information
-    const { id, location, birthday, email } = profileEditRequestDto;
+    const { id, location, birthday, email, avatar_url } = profileEditRequestDto;
 
     const updateData: any = {};
     if (location !== undefined) updateData.location = location;
@@ -43,6 +43,7 @@ export class ProfileService {
       updateData.birthday = birthday === '' ? null : new Date(birthday);
     }
     if (email !== undefined) updateData.email = email;
+    if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
 
     const updatedProfile = await this.prismaService.users.update({
       where: { id },
@@ -65,6 +66,7 @@ export class ProfileService {
     dto.username = profile.username;
     dto.birthday = profile.birthday;
     dto.location = profile.location;
+    dto.avatar_url = profile.avatar_url;
     dto.registration_date = profile.registration_date;
     dto.consecutive_login_days = profile.consecutive_login_days;
     const favoritedDishes = profile.favorites.map((fav: any) => {

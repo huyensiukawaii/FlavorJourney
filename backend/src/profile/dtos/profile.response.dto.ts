@@ -4,6 +4,7 @@ export class ProfileResponseDto {
     username: string;
     birthday?: Date;
     location?: string;
+    avatar_url?: string;
     registration_date?: Date;
     consecutive_login_days?: number;
     favoritedDishes?: {

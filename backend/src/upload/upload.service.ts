@@ -96,6 +96,56 @@ export class UploadService {
     }
   }
 
+  async uploadAvatar(file: Express.Multer.File): Promise<string> {
+    if (!file) {
+      throw new BadRequestException('Avatar file is required');
+    }
+
+    // Validate file type
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/webp',
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid image format. Only JPEG, PNG, or WEBP are allowed',
+      );
+    }
+
+    // Validate file size (max 2MB for avatars)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      throw new BadRequestException('Avatar size must be under 2MB');
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const extension = file.originalname.split('.').pop();
+    const filename = `avatars/avatar_${timestamp}_${randomString}.${extension}`;
+
+    try {
+      // Upload to S3
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: filename,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ACL: 'public-read',
+      });
+
+      await this.s3Client.send(command);
+
+      // Return S3-compatible URL using the external endpoint
+      return `${this.endpoint}/${this.bucketName}/${filename}`;
+    } catch (error) {
+      console.error('S3 avatar upload error:', error);
+      throw new BadRequestException('Failed to upload avatar');
+    }
+  }
+
   async uploadTemplateAudio(buffer: Buffer, dishId: number): Promise<string> {
     const timestamp = Date.now();
     const filename = `dishes/audio_${dishId}_${timestamp}.mp3`;

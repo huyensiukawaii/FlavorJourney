@@ -31,4 +31,21 @@ export class UploadController {
             message: '画像が正常にアップロードされました',
         };
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('avatar')
+    @UseInterceptors(FileInterceptor('avatar'))
+    async uploadAvatar(
+        @UploadedFile() file: Express.Multer.File,
+    ): Promise<UploadResponseDto> {
+        if (!file) {
+            throw new BadRequestException('Avatar file is required');
+        }
+
+        const url = await this.uploadService.uploadAvatar(file);
+        return {
+            url,
+            message: 'Avatar uploaded successfully',
+        };
+    }
 }
