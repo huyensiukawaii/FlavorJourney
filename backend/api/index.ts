@@ -81,6 +81,18 @@ export default async function handler(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const app = await createApp();
-  app(req, res);
+  try {
+    const app = await createApp();
+    app(req, res);
+  } catch (error) {
+    console.error('Error in handler:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error:
+          process.env.NODE_ENV === 'production' ? undefined : String(error),
+      });
+    }
+  }
 }
