@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+test
+*.spec.ts
+*.test.ts
+.git
+.gitignore
+README.md
+.eslintrc.js
+.prettierrc
+.env.local
+.env.development
+.env.test
+
