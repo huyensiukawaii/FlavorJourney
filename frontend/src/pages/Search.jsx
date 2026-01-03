@@ -41,13 +41,18 @@ const Search = () => {
       queryParams.append('page', String(filterParams.page || 1));
       queryParams.append('limit', String(filterParams.limit || 20));
 
-      if (
-        filterParams.spiciness_level !== undefined &&
-        filterParams.spiciness_level !== null &&
-        filterParams.spiciness_level !== ''
-      ) {
-        queryParams.append('spiciness_level', String(filterParams.spiciness_level));
-      }
+      ['spiciness_level', 'saltiness_level', 'sweetness_level', 'sourness_level'].forEach((tasteKey) => {
+        const value = filterParams[tasteKey];
+        // Nếu là 0 (Không tùy chọn) thì không gửi lên API
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== '' &&
+          Number(value) > 0
+        ) {
+          queryParams.append(tasteKey, String(value));
+        }
+      });
 
       // Thêm category - chỉ gửi nếu là array và có giá trị hợp lệ
       if (Array.isArray(filterParams.category)) {

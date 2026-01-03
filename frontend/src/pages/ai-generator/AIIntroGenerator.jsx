@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,13 +10,51 @@ const makeEntryId = () =>
   (globalThis.crypto?.randomUUID?.() ??
     `${Date.now()}-${Math.floor(Math.random() * 10000)}`);
 
+
 function AIIntroGenerator({ dish }) {
-  const { t } = useTranslation("ai_generator");
+  const { t, i18n } = useTranslation("ai_generator");
+  // Unique key for localStorage per dish and language
+  const getStorageKey = () => {
+    const dishId = dish?.id || "unknown";
+    const lang = i18n.language || "vi";
+    return `ai_intro_${dishId}_${lang}`;
+  };
+
+  // State
   const [context, setContext] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState([]);
   const [copiedKey, setCopiedKey] = useState(null);
+
+  // Track last loaded key to avoid unnecessary reloads
+  const lastLoadedKey = useRef("");
+
+  // Load from localStorage on mount, dish, or language change
+  useEffect(() => {
+    const key = getStorageKey();
+    if (lastLoadedKey.current === key) return;
+    lastLoadedKey.current = key;
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || "null");
+      if (saved) {
+        setContext(saved.context || "");
+        setResults(saved.results || []);
+      } else {
+        setContext("");
+        setResults([]);
+      }
+    } catch (e) {
+      setContext("");
+      setResults([]);
+    }
+  }, [dish?.id, i18n.language]);
+
+  // Save to localStorage when context or results change
+  useEffect(() => {
+    const key = getStorageKey();
+    localStorage.setItem(key, JSON.stringify({ context, results }));
+  }, [context, results, dish?.id, i18n.language]);
 
   const dishTitle =
     dish?.name_japanese || dish?.name_vietnamese || dish?.name_romaji || "";

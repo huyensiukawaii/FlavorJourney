@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./Login.css";
 
 export default function Register({ onSwitchToLogin }) {
@@ -15,7 +17,7 @@ export default function Register({ onSwitchToLogin }) {
     e.preventDefault();
     // Removed requirement to agree to terms per user request
     if (password !== confirmPassword) {
-      alert("パスワードが一致しません。");
+      toast.error("パスワードが一致しません。");
       return;
     }
     setLoading(true);
@@ -33,10 +35,12 @@ export default function Register({ onSwitchToLogin }) {
         if (!res.ok) {
           throw new Error(data?.message || "Register failed");
         }
-        // optionally switch to login after successful register
-        alert("登録成功しました。ログインしてください。");
-        navigate("/login");
-        if (onSwitchToLogin) onSwitchToLogin();
+        // Show toast, then navigate after short delay
+        toast.success("登録成功しました。ログインしてください。");
+        setTimeout(() => {
+          navigate("/login");
+          if (onSwitchToLogin) onSwitchToLogin();
+        }, 1200);
       })
       .catch((err) => {
         setError(err.message || "Network error");
@@ -107,6 +111,17 @@ export default function Register({ onSwitchToLogin }) {
           </button>
         </form>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }

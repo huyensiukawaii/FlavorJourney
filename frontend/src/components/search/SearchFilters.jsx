@@ -111,12 +111,12 @@ const FALLBACK_REGIONS = [];
       ...localFilters,
       region: sanitizeIds(localFilters.region),
       category: sanitizeIds(localFilters.category),
-      spiciness_level: spiceLevel > 0 ? spiceLevel : undefined,
-      saltiness_level: saltinessLevel > 0 ? saltinessLevel : undefined,
-      sweetness_level: sweetnessLevel > 0 ? sweetnessLevel : undefined,
-      sourness_level: sournessLevel > 0 ? sournessLevel : undefined,
       page: 1,
       limit: localFilters.limit || 20,
+      spiciness_level: spiceLevel,
+      saltiness_level: saltinessLevel,
+      sweetness_level: sweetnessLevel,
+      sourness_level: sournessLevel,
     };
     onFilterChange(updatedFilters);
   };
@@ -255,19 +255,14 @@ const FALLBACK_REGIONS = [];
                   : t('spice_selected', { level: spiceLevel })}
               </span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="1"
-              value={spiceLevel}
-              onChange={handleSpiceChange}
-            />
-            <div className="spice-scale">
-              {[0, 1, 2, 3, 4, 5].map((step) => (
-                <span key={step}>{step}</span>
-              ))}
-            </div>
+            <select value={spiceLevel} onChange={handleSpiceChange}>
+              <option value={0}>{t('spice_none')}</option>
+              <option value={1}>{t('spice_selected', { level: 1 })}</option>
+              <option value={2}>{t('spice_selected', { level: 2 })}</option>
+              <option value={3}>{t('spice_selected', { level: 3 })}</option>
+              <option value={4}>{t('spice_selected', { level: 4 })}</option>
+              <option value={5}>{t('spice_selected', { level: 5 })}</option>
+            </select>
           </div>
 
           <div className="filter-field spice-field">
@@ -279,19 +274,14 @@ const FALLBACK_REGIONS = [];
                   : t('saltiness_selected', { level: saltinessLevel })}
               </span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="1"
-              value={saltinessLevel}
-              onChange={handleSaltinessChange}
-            />
-            <div className="spice-scale">
-              {[0, 1, 2, 3, 4, 5].map((step) => (
-                <span key={step}>{step}</span>
-              ))}
-            </div>
+            <select value={saltinessLevel} onChange={handleSaltinessChange}>
+              <option value={0}>{t('saltiness_none')}</option>
+              <option value={1}>{t('saltiness_selected', { level: 1 })}</option>
+              <option value={2}>{t('saltiness_selected', { level: 2 })}</option>
+              <option value={3}>{t('saltiness_selected', { level: 3 })}</option>
+              <option value={4}>{t('saltiness_selected', { level: 4 })}</option>
+              <option value={5}>{t('saltiness_selected', { level: 5 })}</option>
+            </select>
           </div>
 
           <div className="filter-field spice-field">
@@ -303,19 +293,14 @@ const FALLBACK_REGIONS = [];
                   : t('sweetness_selected', { level: sweetnessLevel })}
               </span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="1"
-              value={sweetnessLevel}
-              onChange={handleSweetnessChange}
-            />
-            <div className="spice-scale">
-              {[0, 1, 2, 3, 4, 5].map((step) => (
-                <span key={step}>{step}</span>
-              ))}
-            </div>
+            <select value={sweetnessLevel} onChange={handleSweetnessChange}>
+              <option value={0}>{t('sweetness_none')}</option>
+              <option value={1}>{t('sweetness_selected', { level: 1 })}</option>
+              <option value={2}>{t('sweetness_selected', { level: 2 })}</option>
+              <option value={3}>{t('sweetness_selected', { level: 3 })}</option>
+              <option value={4}>{t('sweetness_selected', { level: 4 })}</option>
+              <option value={5}>{t('sweetness_selected', { level: 5 })}</option>
+            </select>
           </div>
 
           <div className="filter-field spice-field">
@@ -327,19 +312,14 @@ const FALLBACK_REGIONS = [];
                   : t('sourness_selected', { level: sournessLevel })}
               </span>
             </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="1"
-              value={sournessLevel}
-              onChange={handleSournessChange}
-            />
-            <div className="spice-scale">
-              {[0, 1, 2, 3, 4, 5].map((step) => (
-                <span key={step}>{step}</span>
-              ))}
-            </div>
+            <select value={sournessLevel} onChange={handleSournessChange}>
+              <option value={0}>{t('sourness_none')}</option>
+              <option value={1}>{t('sourness_selected', { level: 1 })}</option>
+              <option value={2}>{t('sourness_selected', { level: 2 })}</option>
+              <option value={3}>{t('sourness_selected', { level: 3 })}</option>
+              <option value={4}>{t('sourness_selected', { level: 4 })}</option>
+              <option value={5}>{t('sourness_selected', { level: 5 })}</option>
+            </select>
           </div>
         </div>
       </div>
