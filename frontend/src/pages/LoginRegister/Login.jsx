@@ -1,5 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./Login.css";
 
 export default function Login({ onLoginSuccess }) {
@@ -57,11 +60,10 @@ export default function Login({ onLoginSuccess }) {
       if (data.access_token) {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("user", JSON.stringify(data.user || {}));
-
-        // Always navigate to home page after login
-        navigate("/");
-
-        // Call onLoginSuccess for any additional logic
+        toast.success("ログイン成功しました！");
+        setTimeout(() => {
+          navigate("/");
+        }, 1200);
         if (onLoginSuccess && typeof onLoginSuccess === "function") {
           onLoginSuccess();
         }
@@ -256,6 +258,18 @@ export default function Login({ onLoginSuccess }) {
         {view === "forgot" && renderForgot()}
         {view === "reset" && renderReset()}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={1200}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }

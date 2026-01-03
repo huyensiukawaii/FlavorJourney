@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import AIGenerator from "../../components/ai/AIGenerator";
 import "./DishDetail.css";
 
@@ -91,7 +93,7 @@ export default function DishDetail({ dishId, onBack }) {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert("Vui lòng đăng nhập để thêm vào yêu thích");
+      toast.error("Vui lòng đăng nhập để thêm vào yêu thích");
       return;
     }
 
@@ -132,7 +134,7 @@ export default function DishDetail({ dishId, onBack }) {
       }
     } catch (err) {
       console.error("Error toggling favorite:", err);
-      alert(err.message || t("error"));
+      toast.error(err.message || t("error"));
     } finally {
       setFavoriteLoading(false);
     }
@@ -280,6 +282,17 @@ export default function DishDetail({ dishId, onBack }) {
           <AIGenerator dishId={dishId} dishName={dish.name_japanese} />
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }

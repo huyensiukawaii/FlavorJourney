@@ -256,13 +256,6 @@ export default function Favorites() {
           </div>
         </div>
         <div className="fav-stat">
-          <div className="muted">{t("stats.spicyCount")}</div>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>
-            {stats.spicy}
-            {i18n.language === "jp" ? " 件" : " món"}
-          </div>
-        </div>
-        <div className="fav-stat">
           <div className="muted">{t("stats.popularRegion")}</div>
           <div style={{ fontSize: 16, fontWeight: 700 }}>{stats.region}</div>
         </div>
