@@ -14,11 +14,11 @@ const makeEntryId = () =>
 function AIIntroGenerator({ dish }) {
   const { t, i18n } = useTranslation("ai_generator");
   // Unique key for localStorage per dish and language, memoized for useEffect
-  const getStorageKey = useCallback(() => {
+  const getStorageKey = () => {
     const dishId = dish?.id || "unknown";
     const lang = i18n.language || "vi";
     return `ai_intro_${dishId}_${lang}`;
-  }, [dish?.id, i18n.language]);
+  };
 
   // State
   const [context, setContext] = useState("");
